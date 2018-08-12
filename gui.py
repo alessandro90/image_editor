@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 
         os.path.dirname(os.path.realpath(__file__)), '*.png;; *jpg')
         if fname[0]:
-            self.pic.get_image(self.width(), fname[0])
+            self.pic.get_image(fname[0])
 
     def showSaveDialog(self):
         fname = QFileDialog.getSaveFileName(self, 'Save file', 
@@ -60,8 +60,7 @@ class MainWindow(QMainWindow):
 
     def resizeEvent(self, event):
         if self.pic.image:
-            w = self.width()
-            self.pic.adjust_size(w)
+            self.pic.adjust_size()
             self.pic.setPixmap()
 
 
@@ -69,24 +68,36 @@ class Picture(QLabel):
     def __init__(self, parent):
         super().__init__('', parent)
         self.image = None
+        self.parent = parent
 
-    def get_image(self, w, fname):
-        self.prep_image(w, fname)
+    def get_image(self, fname):
+        self.prep_image(fname)
 
-    def prep_image(self, w, fname):
+    def prep_image(self, fname):
         QImageReader.supportedImageFormats()
-        im, data, self.original_pic = ImageTools.prepare_image(fname, self)
-        self.qim = QImage(data, im.size[0], im.size[1],
-            QImage.Format_ARGB32)
-        self.adjust_size(w)
-        self.setPixmap()
+        self.original = ImageTools.prepare_image(fname, self)
+        self.qt_tweaks()
 
-    def adjust_size(self, w):
+    def adjust_size(self):
+        w = self.parent.width()
         image = QPixmap.fromImage(self.qim)
-        self.image = image.scaledToWidth(w // 2)
+        self.image = image.scaledToWidth(3 * w // 4)
+
+    def qt_tweaks(self):
+        data = ImageTools.get_data(self.original)
+        self.qim = QImage(data, self.original.size[0], self.original.size[1],
+            QImage.Format_ARGB32)
+        self.adjust_size()
+        self.setPixmap()
 
     def setPixmap(self):
         super().setPixmap(self.image)
+
+    def update(self, action):
+        # Perform modifications on self.original with PIL.
+        # Connect this function with the relevant Actions.
+        self.qt_tweaks()
+        self.setPixmap()
 
 
 if __name__ == '__main__':

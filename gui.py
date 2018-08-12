@@ -58,11 +58,6 @@ class MainWindow(QMainWindow):
         if fname[0]:
             self.pic.original_pic.save(fname[0])
 
-    def resizeEvent(self, event):
-        if self.pic.image:
-            self.pic.adjust_size()
-            self.pic.setPixmap()
-
 
 class Picture(QLabel):
     def __init__(self, parent):
@@ -98,6 +93,12 @@ class Picture(QLabel):
         # Connect this function with the relevant Actions.
         self.qt_tweaks()
         self.setPixmap()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.image:
+            self.adjust_size()
+            self.setPixmap()
 
 
 if __name__ == '__main__':

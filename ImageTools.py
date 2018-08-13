@@ -19,3 +19,24 @@ def prepare_image(path, pic):
 def get_data(original):
     data = original.convert("RGBA").tobytes("raw", "RGBA")
     return data
+
+def apply_change(value):
+    def change_pixels(x):
+        x = x + value
+        if x > 255:
+            return 255
+        elif x < 0:
+            return 0
+        else:
+            return x
+    return change_pixels
+
+def change_color(pic, color, value):
+    r, g, b = pic.original.split()
+    if color == 'r':
+        r = r.point(apply_change(value))
+    if color == 'g':
+        g = g.point(apply_change(value))
+    if color == 'b':
+        b = b.point(apply_change(value))
+    return merge("RGB", (r, g, b))

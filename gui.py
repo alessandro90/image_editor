@@ -1,4 +1,5 @@
 import os
+from functools import partial
 from PyQt5.QtWidgets import QMainWindow, \
                             QWidget,     \
                             QLabel,      \
@@ -6,7 +7,8 @@ from PyQt5.QtWidgets import QMainWindow, \
                             QGridLayout, \
                             QAction,     \
                             QFileDialog, \
-                            QSizePolicy
+                            QSizePolicy, \
+                            QSlider
 from PyQt5.QtGui import QImage,       \
                         QImageReader, \
                         QPixmap,      \
@@ -31,17 +33,17 @@ class MainWindow(QMainWindow):
 
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
-        self.add_action(fileMenu, 'Open', 'Ctrl+O', 'Open new file', self.showOpenDialog)
+        self.add_action(fileMenu, 'Open', 'Ctrl+O', 'Open new file', 
+            self.showOpenDialog)
         self.add_action(fileMenu, 'Save as..', 'Ctrl+Shift+S', 'Save file as..', 
             self.showSaveDialog)
         self.add_action(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.saveCurrent)
 
         self.pic = Picture(self)
-        text = QTextEdit()
-        text.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, 
-                                       QSizePolicy.Preferred))
+        self.commands = Commands(self, self.pic)
+  
         grid = QGridLayout()
-        grid.addWidget(text, 0, 0)
+        grid.addWidget(self.commands, 0, 0)
         grid.setSpacing(10)
         grid.addWidget(self.pic, 0, 1)
 
@@ -63,6 +65,7 @@ class MainWindow(QMainWindow):
         if fname[0]:
             self.pic.get_image(fname[0])
             self.pic.name = None
+            self.commands.reset_sliders()
 
     def saveCurrent(self):
         if self.pic.name:
@@ -77,6 +80,51 @@ class MainWindow(QMainWindow):
         if fname[0]:
             self.pic.name = fname[0]
             self.pic.original.save(self.pic.name)
+
+
+class Commands(QWidget):
+    def __init__(self, parent, pic):
+        super().__init__(parent)
+        self.parent = parent
+        self.pic = pic
+        self.sliders = []
+        # self.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, 
+        #                           QSizePolicy.Preferred))
+        self.make_color_sliders()
+
+        grid = QGridLayout()
+        for i, slider in enumerate(self.color_sliders.values()):
+            grid.addWidget(slider, 0, i)
+
+        self.setLayout(grid)
+
+    def adjust_size(self):
+        for slider in self.color_sliders.values():
+            slider.resize(10, self.parent.height() // 3)
+
+    def resizeEvent(self, event):
+        self.adjust_size()
+
+    def reset_sliders(self):
+        for slider in self.sliders:
+            slider.setValue((abs(slider.maximum()) - abs(slider.minimum())) // 2)
+
+    def make_color_sliders(self):
+        self.color_sliders = {}
+        for color in 'r', 'g', 'b':
+            self.color_sliders[color] = QSlider(Qt.Vertical)
+            self.color_sliders[color].setFocusPolicy(Qt.NoFocus)
+            self.color_sliders[color].resize(10, self.parent.height() // 3)
+            self.color_sliders[color].setValue(0)
+            self.color_sliders[color].setMaximum(255)
+            self.color_sliders[color].setMinimum(-255)
+            self.color_sliders[color].valueChanged[int].connect(
+                partial(self.pic.changeColor, color)
+            )
+            self.sliders.append(self.color_sliders[color])
+
+            
+
 
 
 class Picture(QLabel):
@@ -101,11 +149,15 @@ class Picture(QLabel):
         self.adjust_size()
         self.setPixmap()
 
+    def changeColor(self, color, value):
+        if self.image:
+            self.original = ImageTools.change_color(self, color, value)
+            self.update()
+
     def adjust_size(self):
         w = self.parent.width()
         h = self.parent.height()
         image = QPixmap.fromImage(self.qim)
-        # self.image = image.scaledToWidth(3 * w // 4)
         self.image = image.scaled(3 * w // 4, h, Qt.KeepAspectRatio)
 
     def qt_tweaks(self):
@@ -119,9 +171,7 @@ class Picture(QLabel):
     def setPixmap(self):
         super().setPixmap(self.image)
 
-    def update(self, action):
-        # Perform modifications on self.original with PIL.
-        # Connect this function with the relevant Actions.
+    def update(self):
         self.qt_tweaks()
         self.adjust_size()
         self.setPixmap()

@@ -29,27 +29,12 @@ class MainWindow(QMainWindow):
 
         self.statusBar()
 
-        openFile = QAction('Open', self)
-        openFile.setShortcut('Ctrl+O')
-        openFile.setStatusTip('Open new file')
-        openFile.triggered.connect(self.showOpenDialog)
-
-        saveFile = QAction(QIcon('save.png'), 'Save as..', self)
-        saveFile.setShortcut('Ctrl+Shift+S')
-        saveFile.setStatusTip('Save file as..')
-        saveFile.triggered.connect(self.showSaveDialog)
-
-        saveCurrentFile = QAction('Save', self)
-        saveCurrentFile.setShortcut('Ctrl+S')
-        saveCurrentFile.setStatusTip('Save file')
-        saveCurrentFile.triggered.connect(self.saveCurrent)
-
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
-        fileMenu.addAction(openFile)
-        fileMenu.addAction(saveFile)
-        fileMenu.addAction(saveCurrentFile)
-
+        self.add_action(fileMenu, 'Open', 'Ctrl+O', 'Open new file', self.showOpenDialog)
+        self.add_action(fileMenu, 'Save as..', 'Ctrl+Shift+S', 'Save file as..', 
+            self.showSaveDialog)
+        self.add_action(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.saveCurrent)
 
         self.pic = Picture(self)
         text = QTextEdit()
@@ -64,6 +49,13 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1280, 720)
         self.setWindowTitle('Insert Image Test')
         self.show()
+
+    def add_action(self, fileMenu, name, shortcut, statustip, connection):
+        action = QAction(name, self)
+        action.setShortcut(shortcut)
+        action.setStatusTip(statustip)
+        action.triggered.connect(connection)
+        fileMenu.addAction(action)
 
     def showOpenDialog(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 

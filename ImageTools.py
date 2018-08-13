@@ -4,6 +4,9 @@ def load_image(path):
     im = Image.open(path)
     return im
 
+def merge(mode, channels):
+    return Image.merge(mode, channels)
+
 def prepare_image(path, pic):
     image = load_image(path)
     if image.mode == "RGBA" or image.mode == "L":
@@ -11,9 +14,6 @@ def prepare_image(path, pic):
     if image.mode == "P":
         image = image.convert(mode = "RGB", 
             palette = image.getpalette())
-    # This is the only way to avoid a Windows crash.
-    r, g, b = image.split()
-    image = Image.merge("RGB", (b, g, r))
     return image
 
 def get_data(original):

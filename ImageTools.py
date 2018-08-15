@@ -1,4 +1,5 @@
 from PIL import Image
+from PIL import ImageChops
 
 def load_image(path):
     im = Image.open(path)
@@ -6,6 +7,9 @@ def load_image(path):
 
 def merge(mode, channels):
     return Image.merge(mode, channels)
+
+def copy(pic):
+    return pic.copy()
 
 def prepare_image(path, pic):
     image = load_image(path)
@@ -25,14 +29,22 @@ def change_pixel_color(value):
         return x + value
     return apply
 
-def change_color(pic, color, directional_slider):
+def equal(im1, im2):
+    return ImageChops.difference(im1, im2).getbbox() is None
+
+def change_color(pic, color, slider):
     r, g, b = pic.original.split()
+    dr, dg, db = pic.to_display.split()
+    colors = 'r', 'g', 'b'
     modes = {'r' : r, 'g' : g, 'b' : b}
-    direction = directional_slider.direction
-    previous_val = directional_slider.previous_val
-    current_val = directional_slider.value()
-    if direction != 0:
-        val = direction * abs(current_val - previous_val)
-        modes[color] = modes[color].point(change_pixel_color(val))
-        directional_slider.previous_val = current_val
-    return merge("RGB", list(modes.values()))
+    dmodes = {'r' : dr, 'g' : dg, 'b' : db}
+    m = {}
+    if all([equal(modes[i], dmodes[i]) for i in colors if i != color]):
+        m = modes
+    else:
+        m[color] = modes[color]
+        for i in colors:
+            if i != color:
+                m[i] = dmodes[i]
+    m[color] = m[color].point(change_pixel_color(slider.value()))
+    return merge("RGB", (m[colors[0]], m[colors[1]], m[colors[2]]))

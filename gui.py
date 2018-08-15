@@ -111,7 +111,7 @@ class Commands(QWidget):
 
     def make_color_sliders(self):
         self.color_sliders = {}
-        for color in 'r', 'g', 'b':
+        for color in 'red', 'green', 'blue':
             self.color_sliders[color] = QSlider(Qt.Vertical)
             self.color_sliders[color].setFocusPolicy(Qt.NoFocus)
             self.color_sliders[color].resize(10, self.parent.height() // 3)
@@ -120,7 +120,30 @@ class Commands(QWidget):
             self.color_sliders[color].valueChanged.connect(
                 partial(self.pic.changeColor, color, self.color_sliders[color])
             )
+            
+            self.color_sliders[color].setStyleSheet(self.slider_stylesheet(color))
             self.sliders.append(self.color_sliders[color])
+
+    @staticmethod
+    def slider_stylesheet(color):
+        colors = {'red' : '#ff0000', 
+                  'green' : '#5dff00', 
+                  'blue' : '#0008ff'}
+        return f"""
+                QSlider::groove:vertical {{
+                    border: 1px solid #999999;
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                        stop:0 {colors[color]}, stop:1 #000000);
+                    margin: 5px 0;
+                }}
+                QSlider::handle:vertical {{
+                    background: #FFFFFF;
+                    border: 10px solid #FFFFFF;
+                    margin-top: -5px;
+                    margin-bottom: -5px;
+                    border-radius: 10px;
+                }}
+            """
 
 
 class Picture(QLabel):

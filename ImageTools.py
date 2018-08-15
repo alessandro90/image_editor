@@ -35,9 +35,9 @@ def equal(im1, im2):
 def change_color(pic, color, slider):
     r, g, b = pic.original.split()
     dr, dg, db = pic.to_display.split()
-    colors = 'r', 'g', 'b'
-    modes = {'r' : r, 'g' : g, 'b' : b}
-    dmodes = {'r' : dr, 'g' : dg, 'b' : db}
+    colors = 'red', 'green', 'blue'
+    modes = {'red' : r, 'green' : g, 'blue' : b}
+    dmodes = {'red' : dr, 'green' : dg, 'blue' : db}
     m = {}
     if all([equal(modes[i], dmodes[i]) for i in colors if i != color]):
         m = modes

@@ -1,11 +1,12 @@
 from PIL import Image
 from PIL import ImageChops
+from PIL import ImageEnhance
 
 def load_image(path):
     im = Image.open(path)
     return im
 
-def merge(mode, channels):
+def merge(channels, mode = "RGB"):
     return Image.merge(mode, channels)
 
 def copy(pic):
@@ -32,6 +33,9 @@ def change_pixel_color(value):
 def equal(im1, im2):
     return ImageChops.difference(im1, im2).getbbox() is None
 
+def get_cache_colors(pic):
+    return pic.original.split()
+
 def change_color(pic, color, slider):
     r, g, b = pic.original.split()
     dr, dg, db = pic.to_display.split()
@@ -47,4 +51,23 @@ def change_color(pic, color, slider):
             if i != color:
                 m[i] = dmodes[i]
     m[color] = m[color].point(change_pixel_color(slider.value()))
-    return merge("RGB", (m[colors[0]], m[colors[1]], m[colors[2]]))
+    cache_colors = (m[colors[0]], m[colors[1]], m[colors[2]])
+    return merge(cache_colors), cache_colors
+
+def change_color_balance(pic, slider):
+    if pic.copy_contrast:
+        pic.cache_colors = copy(pic.to_display).split()
+        pic.copy_contrast = False
+    image = merge(pic.cache_colors)
+    enh = ImageEnhance.Color(image)
+    enhanced_pic = enh.enhance(slider.value() / 1000.)
+    return enhanced_pic, True
+
+def change_contrast(pic, slider):
+    if pic.copy_color_balance:
+        pic.cache_colors = copy(pic.to_display).split()
+        pic.copy_color_balance = False
+    image = merge(pic.cache_colors)
+    enh = ImageEnhance.Contrast(image)
+    enhanced_pic = enh.enhance(slider.value() / 1000.)
+    return enhanced_pic, True

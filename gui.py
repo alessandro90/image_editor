@@ -86,14 +86,17 @@ class Commands(QWidget):
         super().__init__(parent)
         self.parent = parent
         self.pic = pic
-        self.sliders = []
-        # self.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, 
-        #                           QSizePolicy.Preferred))
+        self.sliders = {}
+
+        self.make_contrast_slider()
+        self.make_color_balance_slider()
         self.make_color_sliders()
 
         grid = QGridLayout()
         for i, slider in enumerate(self.color_sliders.values()):
             grid.addWidget(slider, 0, i)
+        grid.addWidget(self.color_balance_slider, 1, 0)
+        grid.addWidget(self.contrast_slider, 1, 1)
 
         self.setLayout(grid)
 
@@ -105,27 +108,60 @@ class Commands(QWidget):
         self.adjust_size()
 
     def reset_sliders(self):
-        for slider in self.sliders:
+        for slider in self.sliders["RGB"]:
             slider.setValue((abs(slider.maximum()) - abs(slider.minimum())) // 2)
-            # slider.setValue(0)
+        self.sliders["CB"].setValue(1000)
+        self.sliders["C"].setValue(1000)
+
 
     def make_color_sliders(self):
         self.color_sliders = {}
         for color in 'red', 'green', 'blue':
             self.color_sliders[color] = QSlider(Qt.Vertical)
             self.color_sliders[color].setFocusPolicy(Qt.NoFocus)
-            self.color_sliders[color].resize(10, self.parent.height() // 3)
             self.color_sliders[color].setRange(-255, 255)
             self.color_sliders[color].setValue(0)
             self.color_sliders[color].valueChanged.connect(
-                partial(self.pic.changeColor, color, self.color_sliders[color])
+                partial(self.pic.changeColor, color, self.color_sliders[color], 
+                    self.color_balance_slider, self.contrast_slider)
             )
             
-            self.color_sliders[color].setStyleSheet(self.slider_stylesheet(color))
-            self.sliders.append(self.color_sliders[color])
+            self.color_sliders[color].setStyleSheet(
+                self.color_slider_stylesheet(color)
+            )
+            try:
+                self.sliders["RGB"].append(self.color_sliders[color])
+            except KeyError:
+                self.sliders["RGB"] = [self.color_sliders[color]]
+
+    def make_color_balance_slider(self):
+        self.color_balance_slider = QSlider(Qt.Vertical)
+        self.color_balance_slider.setFocusPolicy(Qt.NoFocus)
+        self.color_balance_slider.setRange(0, 2000)
+        self.color_balance_slider.setValue(1000)
+        self.color_balance_slider.valueChanged.connect(
+            partial(self.pic.changeColorBalance, self.color_balance_slider)
+        )
+        self.color_balance_slider.setStyleSheet(
+            self.slider_stylesheet()
+        )
+        self.sliders["CB"] = self.color_balance_slider
+
+    def make_contrast_slider(self):
+        self.contrast_slider = QSlider(Qt.Vertical)
+        self.contrast_slider.setFocusPolicy(Qt.NoFocus)
+        self.contrast_slider.setRange(0, 2000)
+        self.contrast_slider.setValue(1000)
+        self.contrast_slider.valueChanged.connect(
+            partial(self.pic.changeContrast, self.contrast_slider)
+        )
+        self.contrast_slider.setStyleSheet(
+            self.slider_stylesheet()
+        )
+        self.sliders["C"] = self.contrast_slider
 
     @staticmethod
-    def slider_stylesheet(color):
+    def color_slider_stylesheet(color):
         colors = {'red' : '#ff0000', 
                   'green' : '#5dff00', 
                   'blue' : '#0008ff'}
@@ -135,6 +171,7 @@ class Commands(QWidget):
                     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
                         stop:0 {colors[color]}, stop:1 #000000);
                     margin: 5px 0;
+                    width: 8
                 }}
                 QSlider::handle:vertical {{
                     background: #FFFFFF;
@@ -145,6 +182,24 @@ class Commands(QWidget):
                 }}
             """
 
+    @staticmethod
+    def slider_stylesheet():
+        return """
+                QSlider::groove:vertical {
+                    border: 1px solid #999999;
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                        stop:0 #FFFFFF, stop:1 #000000);
+                    margin: 5px 0;
+                    width: 8
+                }
+                QSlider::handle:vertical {
+                    background: #ed3232;
+                    border: 10px solid #ed3232;
+                    margin-top: -5px;
+                    margin-bottom: -5px;
+                    border-radius: 10px;
+                }
+            """
 
 class Picture(QLabel):
     def __init__(self, parent):
@@ -154,9 +209,6 @@ class Picture(QLabel):
         self.path = None
         self.parent = parent
         self.setMinimumSize(150, 150) # Minimum size of the displayed picture.
-        # Vedi resizePolicy
-        # self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, 
-        #                                QSizePolicy.Expanding))
 
     def get_image(self, fname):
         self.prep_image(fname)
@@ -165,14 +217,33 @@ class Picture(QLabel):
         QImageReader.supportedImageFormats()
         self.original = ImageTools.prepare_image(fname, self)
         self.to_display = ImageTools.copy(self.original)
+        self.cache_colors = ImageTools.get_cache_colors(self)
+        self.copy_color_balance = False
+        self.copy_contrast = False
         self.qt_tweaks()
         self.adjust_size()
         self.setPixmap()
 
-    def changeColor(self, color, directional_slider):
+    def changeColor(self, color, directional_slider, color_balance_slider, 
+        contrast_slider):
         if self.image:
-            self.to_display = ImageTools.change_color(self, color, 
+            color_balance_slider.setValue(1000)
+            contrast_slider.setValue(1000)
+            self.to_display, self.cache_colors = ImageTools.change_color(self, 
+                color, 
                 directional_slider)
+            self.update()
+
+    def changeColorBalance(self, slider):
+        if self.image:
+            self.to_display, self.copy_color_balance = ImageTools.change_color_balance(self, slider)
+            self.copy_color_balance = ImageTools.copy(self.to_display)
+            self.update()
+
+    def changeContrast(self, slider):
+        if self.image:
+            self.to_display, self.copy_contrast = ImageTools.change_contrast(self, slider)
+            self.copy_contrast = ImageTools.copy(self.to_display)
             self.update()
 
     def adjust_size(self):
@@ -184,7 +255,7 @@ class Picture(QLabel):
     def qt_tweaks(self):
         # This is the only way to avoid a Windows crash.
         r, g, b = self.to_display.split()
-        image = ImageTools.merge("RGB", (b, g, r))
+        image = ImageTools.merge((b, g, r))
         data = ImageTools.get_data(image)
         self.qim = QImage(data, image.size[0], image.size[1],
             QImage.Format_ARGB32)

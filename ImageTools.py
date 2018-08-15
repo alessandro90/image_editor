@@ -20,23 +20,19 @@ def get_data(original):
     data = original.convert("RGBA").tobytes("raw", "RGBA")
     return data
 
-def apply_change(value):
-    def change_pixels(x):
-        x = x + value
-        if x > 255:
-            return 255
-        elif x < 0:
-            return 0
-        else:
-            return x
-    return change_pixels
+def change_pixel_color(value):
+    def apply(x):
+        return x + value
+    return apply
 
-def change_color(pic, color, value):
+def change_color(pic, color, directional_slider):
     r, g, b = pic.original.split()
-    if color == 'r':
-        r = r.point(apply_change(value))
-    if color == 'g':
-        g = g.point(apply_change(value))
-    if color == 'b':
-        b = b.point(apply_change(value))
-    return merge("RGB", (r, g, b))
+    modes = {'r' : r, 'g' : g, 'b' : b}
+    direction = directional_slider.direction
+    previous_val = directional_slider.previous_val
+    current_val = directional_slider.value()
+    if direction != 0:
+        val = direction * abs(current_val - previous_val)
+        modes[color] = modes[color].point(change_pixel_color(val))
+        directional_slider.previous_val = current_val
+    return merge("RGB", list(modes.values()))

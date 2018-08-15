@@ -107,23 +107,92 @@ class Commands(QWidget):
 
     def reset_sliders(self):
         for slider in self.sliders:
-            slider.setValue((abs(slider.maximum()) - abs(slider.minimum())) // 2)
+            # slider.setValue((abs(slider.maximum()) - abs(slider.minimum())) // 2)
+            slider.setValue(0)
 
     def make_color_sliders(self):
         self.color_sliders = {}
         for color in 'r', 'g', 'b':
-            self.color_sliders[color] = QSlider(Qt.Vertical)
+            self.color_sliders[color] = DirectionalSlider(Qt.Vertical)
             self.color_sliders[color].setFocusPolicy(Qt.NoFocus)
             self.color_sliders[color].resize(10, self.parent.height() // 3)
+            self.color_sliders[color].setRange(0, 255)
             self.color_sliders[color].setValue(0)
-            self.color_sliders[color].setMaximum(255)
-            self.color_sliders[color].setMinimum(-255)
-            self.color_sliders[color].valueChanged[int].connect(
-                partial(self.pic.changeColor, color)
+            self.color_sliders[color].valueChanged.connect(
+                partial(self.pic.changeColor, color, self.color_sliders[color])
             )
             self.sliders.append(self.color_sliders[color])
 
-            
+
+class DirectionalSlider(QSlider):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self._direction = 0
+        self.previous_val = self.value()
+        self.current_val = self.previous_val
+        self.called = 0
+
+    @property
+    def direction(self):
+        current_val = self.value()
+        if current_val > self.previous_val:
+            self._direction = 1
+        elif current_val < self.previous_val:
+            self._direction = -1
+        else:
+            self._direction = 0
+        return self._direction
+
+
+
+# class Slider(QSlider):
+#     Nothing, Forward, Backward = range(3)
+#     directionChanged = pyqtSignal(int)
+#     def __init__(self, parent=None):
+#         QSlider.__init__(self, parent)
+#         self._direction = Slider.Nothing
+#         self.last = self.value()/self.maximum()
+#         self.valueChanged.connect(self.onValueChanged)
+
+#     def onValueChanged(self, value):
+#         current = value/self.maximum()
+#         direction = Slider.Forward if self.last < current else Slider.Backward
+#         if self._direction != direction:
+#             self.directionChanged.emit(direction)
+#             self._direction = direction
+#         self.last = current
+
+#     def direction(self):
+#         return self._direction
+
+# In the following part there is an example of the use of this class:
+
+# class Widget(QWidget):
+#     def __init__(self, parent=None):
+#         QWidget.__init__(self, parent)
+#         self.setLayout(QVBoxLayout())
+#         slider = Slider(self)
+#         slider.setOrientation(Qt.Horizontal)
+#         self.layout().addWidget(slider)
+#         slider.directionChanged.connect(self.onDirectionChanged)
+#         slider.valueChanged.connect(self.onValueChanged)
+
+#     def onDirectionChanged(self, direction):
+#         if direction == Slider.Forward:
+#             print("Forward")
+#         elif direction == Slider.Backward:
+#             print("Backward")
+
+#     def onValueChanged(self, value):
+#         dirstr = "Forward" if self.sender().direction() == Slider.Forward else "Backward"
+#         print(value, dirstr)
+
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     w = Widget()
+#     w.show()
+#     sys.exit(app.exec_())
+
 
 
 
@@ -149,9 +218,10 @@ class Picture(QLabel):
         self.adjust_size()
         self.setPixmap()
 
-    def changeColor(self, color, value):
+    def changeColor(self, color, directional_slider):
         if self.image:
-            self.original = ImageTools.change_color(self, color, value)
+            self.original = ImageTools.change_color(self, color, 
+                directional_slider)
             self.update()
 
     def adjust_size(self):

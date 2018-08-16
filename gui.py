@@ -33,11 +33,11 @@ class MainWindow(QMainWindow):
 
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
-        self.add_action(fileMenu, 'Open', 'Ctrl+O', 'Open new file', 
+        self.newAction(fileMenu, 'Open', 'Ctrl+O', 'Open new file', 
             self.showOpenDialog)
-        self.add_action(fileMenu, 'Save as..', 'Ctrl+Shift+S', 'Save file as..', 
+        self.newAction(fileMenu, 'Save as..', 'Ctrl+Shift+S', 'Save file as..', 
             self.showSaveDialog)
-        self.add_action(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.saveCurrent)
+        self.newAction(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.saveCurrent)
 
         self.pic = Picture(self)
         self.commands = Commands(self, self.pic)
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Insert Image Test')
         self.show()
 
-    def add_action(self, fileMenu, name, shortcut, statustip, connection):
+    def newAction(self, fileMenu, name, shortcut, statustip, connection):
         action = QAction(name, self)
         action.setShortcut(shortcut)
         action.setStatusTip(statustip)
@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         if fname[0]:
             self.pic.get_image(fname[0])
             self.pic.name = None
-            self.commands.reset_sliders()
+            self.commands.resetSliders()
 
     def saveCurrent(self):
         if self.pic.name:
@@ -87,11 +87,11 @@ class Commands(QWidget):
         super().__init__(parent)
         self.parent = parent
         self.pic = pic
-        self.sliders = {}
+        self.sliders = []
 
-        self.make_contrast_slider()
-        self.make_color_balance_slider()
-        self.make_color_sliders()
+        self.makeContrastSlider()
+        self.makeColorBalanceSlider()
+        self.makeColorSliders()
 
         grid = QGridLayout()
         for i, slider in enumerate(self.color_sliders.values()):
@@ -101,27 +101,23 @@ class Commands(QWidget):
 
         self.setLayout(grid)
 
-    def adjust_size(self):
-        for slider in self.color_sliders.values():
+    def adjustSize(self):
+        for slider in self.sliders:
             slider.resize(10, self.parent.height() // 3)
 
     def resizeEvent(self, event):
-        self.adjust_size()
+        self.adjustSize()
 
-    def reset_sliders(self):
-        for slider in self.sliders["RGB"]:
-            slider.setValue((abs(slider.maximum()) - abs(slider.minimum())) // 2)
-        self.sliders["CB"].setValue(1000)
-        self.sliders["C"].setValue(1000)
+    def resetSliders(self):
+        for slider in self.sliders:
+            slider.reset()
 
 
-    def make_color_sliders(self):
+    def makeColorSliders(self):
         self.color_sliders = {}
-        for color, html_color in zip(('red', 'green', 'blue'), ('#ff0000', '#5dff00', '#0008ff')):
-            self.color_sliders[color] = QSlider(Qt.Vertical)
-            self.color_sliders[color].setFocusPolicy(Qt.NoFocus)
-            self.color_sliders[color].setRange(-255, 255)
-            self.color_sliders[color].setValue(0)
+        for color, html_color in zip(('red', 'green', 'blue'), 
+            ('#ff0000', '#5dff00', '#0008ff')):
+            self.color_sliders[color] = ResetSlider(0, -255, 255, Qt.Vertical)
             self.color_sliders[color].valueChanged.connect(
                 partial(self.pic.changeColor, color, self.color_sliders[color], 
                     self.color_balance_slider, self.contrast_slider)
@@ -132,36 +128,48 @@ class Commands(QWidget):
                                               groove_color_start = '#000000', 
                                               groove_color_stop = html_color)
             )
-            try:
-                self.sliders["RGB"].append(self.color_sliders[color])
-            except KeyError:
-                self.sliders["RGB"] = [self.color_sliders[color]]
+            self.sliders.append(self.color_sliders[color])
 
-    def make_color_balance_slider(self):
-        self.color_balance_slider = QSlider(Qt.Vertical)
-        self.color_balance_slider.setFocusPolicy(Qt.NoFocus)
-        self.color_balance_slider.setRange(0, 2000)
-        self.color_balance_slider.setValue(1000)
+    def makeColorBalanceSlider(self):
+        self.color_balance_slider = ResetSlider(1000, 0, 2000, 
+            1000, Qt.Vertical)
         self.color_balance_slider.valueChanged.connect(
             partial(self.pic.changeColorBalance, self.color_balance_slider)
         )
         self.color_balance_slider.setStyleSheet(
             stylesheets.slider_stylesheet()
         )
-        self.sliders["CB"] = self.color_balance_slider
+        self.sliders.append(self.color_balance_slider)
 
-    def make_contrast_slider(self):
-        self.contrast_slider = QSlider(Qt.Vertical)
-        self.contrast_slider.setFocusPolicy(Qt.NoFocus)
-        self.contrast_slider.setRange(0, 2000)
-        self.contrast_slider.setValue(1000)
+    def makeContrastSlider(self):
+        self.contrast_slider = ResetSlider(1000, 0, 2000, 
+            1000, Qt.Vertical)
         self.contrast_slider.valueChanged.connect(
             partial(self.pic.changeContrast, self.contrast_slider)
         )
         self.contrast_slider.setStyleSheet(
             stylesheets.slider_stylesheet()
         )
-        self.sliders["C"] = self.contrast_slider
+        self.sliders.append(self.contrast_slider)
+
+
+class ResetSlider(QSlider):
+    def __init__(self, default_value, minv, maxv, scale_factor = 1, *args):
+        super().__init__(*args)
+        self.default_value = default_value
+        self.scale_factor = scale_factor
+        self.setFocusPolicy(Qt.NoFocus)
+        self.setRange(minv, maxv)
+        self.setValue(self.default_value)
+
+    def reset(self):
+        self.setValue(self.default_value)
+
+    def value(self):
+        if self.scale_factor != 1:
+            return super().value() / self.scale_factor
+        else:
+            return super().value()
 
 
 class Picture(QLabel):
@@ -183,15 +191,15 @@ class Picture(QLabel):
         self.cache_colors = ImageTools.get_cache_colors(self)
         self.copy_color_balance = False
         self.copy_contrast = False
-        self.qt_tweaks()
-        self.adjust_size()
+        self.qtTweaks()
+        self.adjustSize()
         self.setPixmap()
 
     def changeColor(self, color, directional_slider, color_balance_slider, 
         contrast_slider):
         if self.image:
-            color_balance_slider.setValue(1000)
-            contrast_slider.setValue(1000)
+            color_balance_slider.reset()
+            contrast_slider.reset()
             self.to_display, self.cache_colors = ImageTools.change_color(self, 
                 color, 
                 directional_slider)
@@ -209,13 +217,13 @@ class Picture(QLabel):
             self.copy_contrast = ImageTools.copy(self.to_display)
             self.update()
 
-    def adjust_size(self):
+    def adjustSize(self):
         w = self.parent.width()
         h = self.parent.height()
         image = QPixmap.fromImage(self.qim)
         self.image = image.scaled(3 * w // 4, h, Qt.KeepAspectRatio)
 
-    def qt_tweaks(self):
+    def qtTweaks(self):
         # This is the only way to avoid a Windows crash.
         r, g, b = self.to_display.split()
         image = ImageTools.merge((b, g, r))
@@ -227,12 +235,12 @@ class Picture(QLabel):
         super().setPixmap(self.image)
 
     def update(self):
-        self.qt_tweaks()
-        self.adjust_size()
+        self.qtTweaks()
+        self.adjustSize()
         self.setPixmap()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.image:
-            self.adjust_size()
+            self.adjustSize()
             self.setPixmap()

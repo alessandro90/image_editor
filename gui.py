@@ -14,7 +14,7 @@ from PyQt5.QtGui import QImage,       \
                         QIcon
 from PyQt5.QtCore import Qt
 
-import ImageTools
+import image_tools
 import stylesheets
 
 class MainWindow(QMainWindow):
@@ -23,6 +23,8 @@ class MainWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
+        self.save_path = None
+        self.open_path = None
         wid = QWidget()
         self.setCentralWidget(wid)
         palette = self.palette()
@@ -60,9 +62,14 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(action)
 
     def showOpenDialog(self):
+        if self.open_path:
+            open_path = self.open_path
+        else:
+            open_path = os.path.dirname(os.path.realpath(__file__))
         fname = QFileDialog.getOpenFileName(self, 'Open file', 
-        os.path.dirname(os.path.realpath(__file__)), '*png *jpg;; *.png;; *jpg')
+        open_path, '*png *jpg;; *.png;; *jpg')
         if fname[0]:
+            self.open_path, _ = os.path.split(fname[0])
             self.pic.get_image(fname[0])
             self.pic.name = None
             self.commands.resetSliders()
@@ -74,10 +81,15 @@ class MainWindow(QMainWindow):
             self.showSaveDialog()
 
     def showSaveDialog(self):
-        save_folder = self.pic.name or os.path.dirname(os.path.realpath(__file__))
+        if not self.save_path:
+            save_folder = os.path.dirname(os.path.realpath(__file__))
+        else:
+            save_folder = self.save_path
+
         fname = QFileDialog.getSaveFileName(self, 'Save file as..', 
             save_folder, '*.png;; *jpg')
         if fname[0]:
+            self.save_path, _ = os.path.split(fname[0])
             self.pic.name = fname[0]
             self.pic.to_display.save(self.pic.name)
 
@@ -154,7 +166,7 @@ class Commands(QWidget):
 
 
 class ResetSlider(QSlider):
-    def __init__(self, default_value, minv, maxv, scale_factor = 1, *args):
+    def __init__(self, default_value, minv, maxv, scale_factor = None, *args):
         super().__init__(*args)
         self.default_value = default_value
         self.scale_factor = scale_factor
@@ -166,7 +178,7 @@ class ResetSlider(QSlider):
         self.setValue(self.default_value)
 
     def value(self):
-        if self.scale_factor != 1:
+        if self.scale_factor:
             return super().value() / self.scale_factor
         else:
             return super().value()
@@ -186,11 +198,11 @@ class Picture(QLabel):
 
     def prep_image(self, fname):
         QImageReader.supportedImageFormats()
-        self.original = ImageTools.prepare_image(fname, self)
-        self.to_display = ImageTools.copy(self.original)
-        self.cache_colors = ImageTools.get_cache_colors(self)
-        self.copy_color_balance = False
-        self.copy_contrast = False
+        self.original = image_tools.prepare_image(fname, self)
+        self.to_display = image_tools.copy(self.original)
+        self.cache_colors = image_tools.get_cache_colors(self)
+        self.changed_color_balance = False
+        self.changed_contrast = False
         self.qtTweaks()
         self.adjustSize()
         self.setPixmap()
@@ -200,21 +212,19 @@ class Picture(QLabel):
         if self.image:
             color_balance_slider.reset()
             contrast_slider.reset()
-            self.to_display, self.cache_colors = ImageTools.change_color(self, 
+            self.to_display, self.cache_colors = image_tools.change_color(self, 
                 color, 
                 directional_slider)
             self.update()
 
     def changeColorBalance(self, slider):
         if self.image:
-            self.to_display, self.copy_color_balance = ImageTools.change_color_balance(self, slider)
-            self.copy_color_balance = ImageTools.copy(self.to_display)
+            self.to_display = image_tools.change_color_balance(self, slider)
             self.update()
 
     def changeContrast(self, slider):
         if self.image:
-            self.to_display, self.copy_contrast = ImageTools.change_contrast(self, slider)
-            self.copy_contrast = ImageTools.copy(self.to_display)
+            self.to_display = image_tools.change_contrast(self, slider)
             self.update()
 
     def adjustSize(self):
@@ -226,8 +236,8 @@ class Picture(QLabel):
     def qtTweaks(self):
         # This is the only way to avoid a Windows crash.
         r, g, b = self.to_display.split()
-        image = ImageTools.merge((b, g, r))
-        data = ImageTools.get_data(image)
+        image = image_tools.merge((b, g, r))
+        data = image_tools.get_data(image)
         self.qim = QImage(data, image.size[0], image.size[1],
             QImage.Format_ARGB32)
 

@@ -55,19 +55,21 @@ def change_color(pic, color, slider):
     return merge(cache_colors), cache_colors
 
 def change_color_balance(pic, slider):
-    if pic.copy_contrast:
+    if pic.changed_contrast:
         pic.cache_colors = copy(pic.to_display).split()
-        pic.copy_contrast = False
+        pic.changed_contrast = False
     image = merge(pic.cache_colors)
     enh = ImageEnhance.Color(image)
     enhanced_pic = enh.enhance(slider.value())
-    return enhanced_pic, True
+    pic.changed_color_balance = True
+    return enhanced_pic
 
 def change_contrast(pic, slider):
-    if pic.copy_color_balance:
+    if pic.changed_color_balance:
         pic.cache_colors = copy(pic.to_display).split()
-        pic.copy_color_balance = False
+        pic.changed_color_balance = False
     image = merge(pic.cache_colors)
     enh = ImageEnhance.Contrast(image)
     enhanced_pic = enh.enhance(slider.value())
-    return enhanced_pic, True
+    pic.changed_contrast = True
+    return enhanced_pic

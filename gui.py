@@ -15,6 +15,7 @@ from PyQt5.QtGui import QImage,       \
 from PyQt5.QtCore import Qt
 
 import ImageTools
+import stylesheets
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -116,7 +117,7 @@ class Commands(QWidget):
 
     def make_color_sliders(self):
         self.color_sliders = {}
-        for color in 'red', 'green', 'blue':
+        for color, html_color in zip(('red', 'green', 'blue'), ('#ff0000', '#5dff00', '#0008ff')):
             self.color_sliders[color] = QSlider(Qt.Vertical)
             self.color_sliders[color].setFocusPolicy(Qt.NoFocus)
             self.color_sliders[color].setRange(-255, 255)
@@ -127,7 +128,9 @@ class Commands(QWidget):
             )
             
             self.color_sliders[color].setStyleSheet(
-                self.color_slider_stylesheet(color)
+                stylesheets.slider_stylesheet(handle_color = '#FFFFFF', 
+                                              groove_color_start = '#000000', 
+                                              groove_color_stop = html_color)
             )
             try:
                 self.sliders["RGB"].append(self.color_sliders[color])
@@ -143,7 +146,7 @@ class Commands(QWidget):
             partial(self.pic.changeColorBalance, self.color_balance_slider)
         )
         self.color_balance_slider.setStyleSheet(
-            self.slider_stylesheet()
+            stylesheets.slider_stylesheet()
         )
         self.sliders["CB"] = self.color_balance_slider
 
@@ -156,50 +159,10 @@ class Commands(QWidget):
             partial(self.pic.changeContrast, self.contrast_slider)
         )
         self.contrast_slider.setStyleSheet(
-            self.slider_stylesheet()
+            stylesheets.slider_stylesheet()
         )
         self.sliders["C"] = self.contrast_slider
 
-    @staticmethod
-    def color_slider_stylesheet(color):
-        colors = {'red' : '#ff0000', 
-                  'green' : '#5dff00', 
-                  'blue' : '#0008ff'}
-        return f"""
-                QSlider::groove:vertical {{
-                    border: 1px solid #999999;
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                        stop:0 {colors[color]}, stop:1 #000000);
-                    margin: 5px 0;
-                    width: 8
-                }}
-                QSlider::handle:vertical {{
-                    background: #FFFFFF;
-                    border: 10px solid #FFFFFF;
-                    margin-top: -5px;
-                    margin-bottom: -5px;
-                    border-radius: 10px;
-                }}
-            """
-
-    @staticmethod
-    def slider_stylesheet():
-        return """
-                QSlider::groove:vertical {
-                    border: 1px solid #999999;
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                        stop:0 #FFFFFF, stop:1 #000000);
-                    margin: 5px 0;
-                    width: 8
-                }
-                QSlider::handle:vertical {
-                    background: #ed3232;
-                    border: 10px solid #ed3232;
-                    margin-top: -5px;
-                    margin-bottom: -5px;
-                    border-radius: 10px;
-                }
-            """
 
 class Picture(QLabel):
     def __init__(self, parent):

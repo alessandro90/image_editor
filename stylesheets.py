@@ -21,3 +21,8 @@ def main_window(*, bg = '#424242'):
     return f"""
         background-color: {bg};
     """
+
+def button(*, bg = '#ececec'):
+    return f"""
+        background-color: {bg}
+    """

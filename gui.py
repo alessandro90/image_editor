@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QMainWindow, \
                             QWidget,     \
                             QLabel,      \
                             QGridLayout, \
-                            QVBoxLayout, \
                             QAction,     \
                             QFileDialog, \
                             QPushButton, \
@@ -12,8 +11,7 @@ from PyQt5.QtWidgets import QMainWindow, \
                             QSlider
 from PyQt5.QtGui import QImage,       \
                         QImageReader, \
-                        QPixmap,      \
-                        QIcon
+                        QPixmap
 from PyQt5.QtCore import Qt
 
 import image_tools
@@ -101,33 +99,56 @@ class Commands(QWidget):
         self.pic = pic
         self.sliders = []
 
-        self.makeContrastSlider()
-        # contrast = QPushButton('Contrast', self)
-        # contrast.resize(contrast.sizeHint())
-        # contrast.clicked.connect(lambda : self.contrast_slider.reset)
-        # contrast_box = QVBoxLayout()
-        # contrast_box.addWidget(contrast)
-        # contrast_box.addWidget(self.contrast_slider)
 
+        self.makeContrastSlider()
         self.makeColorBalanceSlider()
         self.makeBrighnessSlider()
         self.makeSharpnessSlider()
         self.makeColorSliders()
 
-        colors_grid = QGridLayout()
-        for i, slider in enumerate(self.color_sliders.values()):
-            colors_grid.addWidget(slider, 0, i)
+        contrast = QPushButton('Contrast', self)
+        contrast.setStyleSheet(stylesheets.button(bg = '#7d2fe1'))
+        contrast.clicked.connect(lambda : self.contrast_slider.reset())
 
+        color_balance = QPushButton('Color balance', self)
+        color_balance.setStyleSheet(stylesheets.button(bg = '#2f95e1'))
+        color_balance.clicked.connect(lambda : self.color_balance_slider.reset())
+
+        brighness = QPushButton('Brighness', self)
+        brighness.setStyleSheet(stylesheets.button(bg = '#2fe180'))
+        brighness.clicked.connect(lambda : self.brighness_slider.reset())
+
+        sharpness = QPushButton('Sharpness', self)
+        sharpness.setStyleSheet(stylesheets.button(bg = '#e1832f'))
+        sharpness.clicked.connect(lambda : self.sharpness_slider.reset())        
+
+        reset_colors = QPushButton('Reset colors', self)
+        reset_colors.setStyleSheet(stylesheets.button())
+        reset_colors.clicked.connect(self.resetColorSliders)
+
+        colors_grid = QGridLayout()
+        colors_grid.addWidget(self.color_sliders['red'], 1, 0)
+        colors_grid.addWidget(self.color_sliders['green'], 1, 1)
+        colors_grid.addWidget(self.color_sliders['blue'], 1, 2)
+        
         effects_grid = QGridLayout()
         effects_grid.addWidget(self.color_balance_slider, 0, 0)
         effects_grid.addWidget(self.contrast_slider, 0, 1)
-        # effects_grid.addLayout(contrast_box, 0, 1)
         effects_grid.addWidget(self.brighness_slider, 0, 2)
         effects_grid.addWidget(self.sharpness_slider, 0, 3)
 
+        buttons_grid = QGridLayout()
+        buttons_grid.setSpacing(0)
+        buttons_grid.addWidget(reset_colors, 0, 0, 1, 2)
+        buttons_grid.addWidget(color_balance, 1, 0)
+        buttons_grid.addWidget(contrast, 1, 1)
+        buttons_grid.addWidget(brighness, 2, 0)
+        buttons_grid.addWidget(sharpness, 2, 1)
+
         meta_grid = QGridLayout()
-        meta_grid.addLayout(colors_grid, 0, 0)
-        meta_grid.addLayout(effects_grid, 1, 0)
+        meta_grid.addLayout(colors_grid, 0, 0, Qt.AlignHCenter)
+        meta_grid.addLayout(effects_grid, 1, 0, Qt.AlignHCenter)
+        meta_grid.addLayout(buttons_grid, 2, 0, Qt.AlignHCenter)
 
         self.setLayout(meta_grid)
 
@@ -142,6 +163,9 @@ class Commands(QWidget):
         for slider in self.sliders:
             slider.reset()
 
+    def resetColorSliders(self):
+        for slider in self.color_sliders.values():
+            slider.reset()
 
     def makeColorSliders(self):
         self.color_sliders = {}
@@ -171,7 +195,7 @@ class Commands(QWidget):
             partial(self.pic.changeColorBalance, self.color_balance_slider)
         )
         self.color_balance_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#4b97ff')
+            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#2f95e1')
         )
         self.sliders.append(self.color_balance_slider)
 
@@ -182,7 +206,7 @@ class Commands(QWidget):
             partial(self.pic.changeContrast, self.contrast_slider)
         )
         self.contrast_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#4b97ff')
+            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#7d2fe1')
         )
         self.sliders.append(self.contrast_slider)
 
@@ -193,7 +217,7 @@ class Commands(QWidget):
             partial(self.pic.changeBrighness, self.brighness_slider)
         )
         self.brighness_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#4b97ff')
+            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#2fe180')
         )
         self.sliders.append(self.brighness_slider)
 
@@ -204,7 +228,7 @@ class Commands(QWidget):
             partial(self.pic.changeSharpness, self.sharpness_slider)
         )
         self.sharpness_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#4b97ff')
+            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#e1832f')
         )
         self.sliders.append(self.sharpness_slider)
 

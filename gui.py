@@ -105,15 +105,21 @@ class Commands(QWidget):
         self.makeColorSliders()
         self.makeSharpnessSlider()
 
-        grid = QGridLayout()
+        colors_grid = QGridLayout()
         for i, slider in enumerate(self.color_sliders.values()):
-            grid.addWidget(slider, 0, i)
-        grid.addWidget(self.color_balance_slider, 1, 0)
-        grid.addWidget(self.contrast_slider, 1, 1)
-        grid.addWidget(self.brighness_slider, 1, 2)
-        grid.addWidget(self.sharpness_slider, 1, 3)
+            colors_grid.addWidget(slider, 0, i)
 
-        self.setLayout(grid)
+        effects_grid = QGridLayout()
+        effects_grid.addWidget(self.color_balance_slider, 0, 0)
+        effects_grid.addWidget(self.contrast_slider, 0, 1)
+        effects_grid.addWidget(self.brighness_slider, 0, 2)
+        effects_grid.addWidget(self.sharpness_slider, 0, 3)
+
+        meta_grid = QGridLayout()
+        meta_grid.addLayout(colors_grid, 0, 0)
+        meta_grid.addLayout(effects_grid, 1, 0)
+
+        self.setLayout(meta_grid)
 
     def adjustSize(self):
         for slider in self.sliders:
@@ -238,6 +244,8 @@ class Picture(QLabel):
         if self.image:
             color_balance_slider.reset()
             contrast_slider.reset()
+            brighness_slider.reset()
+            sharpness_slider.reset()
             self.to_display, self.cache_colors = image_tools.change_color(self, 
                 color, 
                 directional_slider)

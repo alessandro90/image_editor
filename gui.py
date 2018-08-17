@@ -134,6 +134,10 @@ class Commands(QWidget):
         reset_colors.setStyleSheet(stylesheets.button())
         reset_colors.clicked.connect(self.resetColorSliders)
 
+        reset_all = QPushButton('Reset image', self)
+        reset_all.setStyleSheet(stylesheets.button())
+        reset_all.clicked.connect(self.parent.totalReset)
+
         colors_grid = QGridLayout()
         colors_grid.addWidget(self.color_sliders['red'], 1, 0)
         colors_grid.addWidget(self.color_sliders['green'], 1, 1)
@@ -147,11 +151,12 @@ class Commands(QWidget):
 
         buttons_grid = QGridLayout()
         buttons_grid.setSpacing(0)
-        buttons_grid.addWidget(reset_colors, 0, 0, 1, 2)
-        buttons_grid.addWidget(color_balance, 1, 0)
-        buttons_grid.addWidget(contrast, 1, 1)
-        buttons_grid.addWidget(brighness, 2, 0)
-        buttons_grid.addWidget(sharpness, 2, 1)
+        buttons_grid.addWidget(reset_all, 0, 0, 1, 2)
+        buttons_grid.addWidget(reset_colors, 1, 0, 1, 2)
+        buttons_grid.addWidget(color_balance, 2, 0)
+        buttons_grid.addWidget(contrast, 2, 1)
+        buttons_grid.addWidget(brighness, 3, 0)
+        buttons_grid.addWidget(sharpness, 3, 1)
 
         meta_grid = QGridLayout()
         meta_grid.addLayout(colors_grid, 0, 0, Qt.AlignHCenter)
@@ -268,6 +273,7 @@ class Picture(QLabel):
         self.path = None
         self.parent = parent
         self.setMinimumSize(150, 150) # Minimum size of the displayed picture.
+        self.setStyleSheet(stylesheets.label())
 
     def get_image(self, fname):
         self.prep_image(fname)

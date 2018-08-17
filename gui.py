@@ -97,6 +97,11 @@ class MainWindow(QMainWindow):
         for slider in self.commands.sliders:
             slider.reset()
         self.pic.to_display = self.pic.original
+        self.pic.cache_colors = self.pic.original.split()
+        self.pic.changed_brighness = False
+        self.pic.changed_color_balance = False
+        self.pic.changed_contrast = False
+        self.pic.changed_sharpness = False
         self.pic.update()
 
 

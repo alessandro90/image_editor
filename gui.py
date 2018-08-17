@@ -41,7 +41,9 @@ class MainWindow(QMainWindow):
 
         self.pic = Picture(self)
         self.commands = Commands(self, self.pic)
-  
+
+        self.newAction(fileMenu, 'Reset all', 'Ctrl+R', 'Reset picture', self.totalReset)
+
         grid = QGridLayout()
         grid.addWidget(self.commands, 0, 0)
         grid.setSpacing(10)
@@ -90,6 +92,12 @@ class MainWindow(QMainWindow):
             self.save_path, _ = os.path.split(fname[0])
             self.pic.name = fname[0]
             self.pic.to_display.save(self.pic.name)
+
+    def totalReset(self):
+        for slider in self.commands.sliders:
+            slider.reset()
+        self.pic.to_display = self.pic.original
+        self.pic.update()
 
 
 class Commands(QWidget):

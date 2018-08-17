@@ -96,13 +96,10 @@ class MainWindow(QMainWindow):
     def totalReset(self):
         for slider in self.commands.sliders:
             slider.reset()
-        self.pic.to_display = self.pic.original
-        self.pic.cache_colors = self.pic.original.split()
-        self.pic.changed_brighness = False
-        self.pic.changed_color_balance = False
-        self.pic.changed_contrast = False
-        self.pic.changed_sharpness = False
-        self.pic.update()
+        if self.pic.image:
+            self.pic.to_display = self.pic.original
+            self.pic.cache_colors = image_tools.get_cache_colors(self.pic)
+            self.pic.update()
 
 
 class Commands(QWidget):
@@ -111,7 +108,6 @@ class Commands(QWidget):
         self.parent = parent
         self.pic = pic
         self.sliders = []
-
 
         self.makeContrastSlider()
         self.makeColorBalanceSlider()
@@ -303,6 +299,10 @@ class Picture(QLabel):
             contrast_slider.reset()
             brighness_slider.reset()
             sharpness_slider.reset()
+            self.changed_color_balance = False
+            self.changed_contrast = False
+            self.changed_brighness = False
+            self.changed_sharpness = False
             self.to_display, self.cache_colors = image_tools.change_color(self, 
                 color, 
                 color_slider)

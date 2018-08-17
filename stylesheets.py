@@ -27,7 +27,7 @@ def button(*, bg = '#ececec'):
         background-color: {bg}
     """
 
-def label():
-    return """
-        border: 5px solid #d0d0d0
+def label(border = '#d0d0d0'):
+    return f"""
+        border: 5px solid {border}
     """

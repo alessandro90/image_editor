@@ -16,3 +16,8 @@ def slider_stylesheet(*, handle_color = '#ed3232', groove_color_start = '#000000
                 border-radius: 10px;
             }}
         """
+
+def main_window(*, bg = '#424242'):
+    return f"""
+        background-color: {bg};
+    """

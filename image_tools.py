@@ -55,9 +55,13 @@ def change_color(pic, color, slider):
     return merge(cache_colors), cache_colors
 
 def change_color_balance(pic, slider):
-    if pic.changed_contrast:
-        pic.cache_colors = copy(pic.to_display).split()
+    if pic.changed_contrast or  \
+       pic.changed_brighness or \
+       pic.changed_sharpness:
+        pic.cache_colors = pic.to_display.split()
         pic.changed_contrast = False
+        pic.changed_brighness = False
+        pic.changed_sharpness = False
     image = merge(pic.cache_colors)
     enh = ImageEnhance.Color(image)
     enhanced_pic = enh.enhance(slider.value())
@@ -65,11 +69,43 @@ def change_color_balance(pic, slider):
     return enhanced_pic
 
 def change_contrast(pic, slider):
-    if pic.changed_color_balance:
-        pic.cache_colors = copy(pic.to_display).split()
+    if pic.changed_color_balance or \
+       pic.changed_brighness or     \
+       pic.changed_sharpness:
+        pic.cache_colors = pic.to_display.split()
         pic.changed_color_balance = False
+        pic.changed_brighness = False
+        pic.changed_sharpness = False
     image = merge(pic.cache_colors)
     enh = ImageEnhance.Contrast(image)
     enhanced_pic = enh.enhance(slider.value())
     pic.changed_contrast = True
+    return enhanced_pic
+
+def change_brightness(pic, slider):
+    if pic.changed_color_balance or \
+       pic.changed_contrast or      \
+       pic.changed_sharpness:
+        pic.cache_colors = pic.to_display.split()
+        pic.changed_color_balance = False
+        pic.changed_contrast = False
+        pic.changed_sharpness = False
+    image = merge(pic.cache_colors)
+    enh = ImageEnhance.Brightness(image)
+    enhanced_pic = enh.enhance(slider.value())
+    pic.changed_brighness = True
+    return enhanced_pic
+
+def change_sharpness(pic, slider):
+    if pic.changed_color_balance or \
+       pic.changed_contrast or      \
+       pic.changed_brighness:
+        pic.cache_colors = pic.to_display.split()
+        pic.changed_color_balance = False
+        pic.changed_contrast = False
+        pic.changed_brighness = False
+    image = merge(pic.cache_colors)
+    enh = ImageEnhance.Sharpness(image)
+    enhanced_pic = enh.enhance(slider.value())
+    pic.changed_sharpness = True
     return enhanced_pic

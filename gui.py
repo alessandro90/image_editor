@@ -111,7 +111,7 @@ class Commands(QWidget):
 
         self.makeContrastSlider()
         self.makeColorBalanceSlider()
-        self.makeBrighnessSlider()
+        self.makeBrightnessSlider()
         self.makeSharpnessSlider()
         self.makeColorSliders()
 
@@ -123,9 +123,9 @@ class Commands(QWidget):
         color_balance.setStyleSheet(stylesheets.button(bg = '#2f95e1'))
         color_balance.clicked.connect(lambda : self.color_balance_slider.reset())
 
-        brighness = QPushButton('Brighness', self)
-        brighness.setStyleSheet(stylesheets.button(bg = '#2fe180'))
-        brighness.clicked.connect(lambda : self.brighness_slider.reset())
+        brightness = QPushButton('Brightness', self)
+        brightness.setStyleSheet(stylesheets.button(bg = '#2fe180'))
+        brightness.clicked.connect(lambda : self.brightness_slider.reset())
 
         sharpness = QPushButton('Sharpness', self)
         sharpness.setStyleSheet(stylesheets.button(bg = '#e1832f'))
@@ -147,7 +147,7 @@ class Commands(QWidget):
         effects_grid = QGridLayout()
         effects_grid.addWidget(self.color_balance_slider, 0, 0)
         effects_grid.addWidget(self.contrast_slider, 0, 1)
-        effects_grid.addWidget(self.brighness_slider, 0, 2)
+        effects_grid.addWidget(self.brightness_slider, 0, 2)
         effects_grid.addWidget(self.sharpness_slider, 0, 3)
 
         buttons_grid = QGridLayout()
@@ -156,7 +156,7 @@ class Commands(QWidget):
         buttons_grid.addWidget(reset_colors, 1, 0, 1, 2)
         buttons_grid.addWidget(color_balance, 2, 0)
         buttons_grid.addWidget(contrast, 2, 1)
-        buttons_grid.addWidget(brighness, 3, 0)
+        buttons_grid.addWidget(brightness, 3, 0)
         buttons_grid.addWidget(sharpness, 3, 1)
 
         meta_grid = QGridLayout()
@@ -191,7 +191,7 @@ class Commands(QWidget):
                     self.color_sliders[color], 
                     self.color_balance_slider, 
                     self.contrast_slider, 
-                    self.brighness_slider, 
+                    self.brightness_slider, 
                     self.sharpness_slider)
             )
             
@@ -206,7 +206,7 @@ class Commands(QWidget):
         self.color_balance_slider = ResetSlider(1000, 0, 2000, 
             1000, Qt.Vertical)
         self.color_balance_slider.valueChanged.connect(
-            partial(self.pic.changeColorBalance, self.color_balance_slider)
+            partial(self.pic.changeEffect, self.color_balance_slider, 'Color')
         )
         self.color_balance_slider.setStyleSheet(
             stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#2f95e1')
@@ -217,29 +217,29 @@ class Commands(QWidget):
         self.contrast_slider = ResetSlider(1000, 0, 2000, 
             1000, Qt.Vertical)
         self.contrast_slider.valueChanged.connect(
-            partial(self.pic.changeContrast, self.contrast_slider)
+            partial(self.pic.changeEffect, self.contrast_slider, 'Contrast')
         )
         self.contrast_slider.setStyleSheet(
             stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#7d2fe1')
         )
         self.sliders.append(self.contrast_slider)
 
-    def makeBrighnessSlider(self):
-        self.brighness_slider = ResetSlider(1000, 0, 2000, 
+    def makeBrightnessSlider(self):
+        self.brightness_slider = ResetSlider(1000, 0, 2000, 
             1000, Qt.Vertical)
-        self.brighness_slider.valueChanged.connect(
-            partial(self.pic.changeBrighness, self.brighness_slider)
+        self.brightness_slider.valueChanged.connect(
+            partial(self.pic.changeEffect, self.brightness_slider, 'Brightness')
         )
-        self.brighness_slider.setStyleSheet(
+        self.brightness_slider.setStyleSheet(
             stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#2fe180')
         )
-        self.sliders.append(self.brighness_slider)
+        self.sliders.append(self.brightness_slider)
 
     def makeSharpnessSlider(self):
         self.sharpness_slider = ResetSlider(1000, 0, 2000, 
             1000, Qt.Vertical)
         self.sharpness_slider.valueChanged.connect(
-            partial(self.pic.changeSharpness, self.sharpness_slider)
+            partial(self.pic.changeEffect, self.sharpness_slider, 'Sharpness')
         )
         self.sharpness_slider.setStyleSheet(
             stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#e1832f')
@@ -286,47 +286,32 @@ class Picture(QLabel):
         self.cache_colors = image_tools.get_cache_colors(self)
         self.changed_color_balance = False
         self.changed_contrast = False
-        self.changed_brighness = False
+        self.changed_brightness = False
         self.changed_sharpness = False
         self.qtTweaks()
         self.adjustSize()
         self.setPixmap()
 
     def changeColor(self, color, color_slider, color_balance_slider, 
-        contrast_slider, brighness_slider, sharpness_slider):
+        contrast_slider, brightness_slider, sharpness_slider):
         if self.image:
             color_balance_slider.reset()
             contrast_slider.reset()
-            brighness_slider.reset()
+            brightness_slider.reset()
             sharpness_slider.reset()
             self.changed_color_balance = False
             self.changed_contrast = False
-            self.changed_brighness = False
+            self.changed_brightness = False
             self.changed_sharpness = False
             self.to_display, self.cache_colors = image_tools.change_color(self, 
                 color, 
                 color_slider)
             self.update()
 
-    def changeColorBalance(self, slider):
+    def changeEffect(self, slider, effect):
         if self.image:
-            self.to_display = image_tools.change_color_balance(self, slider)
-            self.update()
-
-    def changeContrast(self, slider):
-        if self.image:
-            self.to_display = image_tools.change_contrast(self, slider)
-            self.update()
-
-    def changeBrighness(self, slider):
-        if self.image:
-            self.to_display = image_tools.change_brightness(self, slider)
-            self.update()
-
-    def changeSharpness(self, slider):
-        if self.image:
-            self.to_display = image_tools.change_sharpness(self, slider)
-            self.update()            
+            self.to_display = image_tools.change_effect(self, slider, effect)
+            self.update()           
 
     def adjustSize(self):
         w = self.parent.width()

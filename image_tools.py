@@ -54,58 +54,24 @@ def change_color(pic, color, slider):
     cache_colors = (m[colors[0]], m[colors[1]], m[colors[2]])
     return merge(cache_colors), cache_colors
 
-def change_color_balance(pic, slider):
-    if pic.changed_contrast or  \
-       pic.changed_brighness or \
-       pic.changed_sharpness:
-        pic.cache_colors = pic.to_display.split()
-        pic.changed_contrast = False
-        pic.changed_brighness = False
-        pic.changed_sharpness = False
-    image = merge(pic.cache_colors)
-    enh = ImageEnhance.Color(image)
-    enhanced_pic = enh.enhance(slider.value())
-    pic.changed_color_balance = True
-    return enhanced_pic
+def build_effects_dict(func):
+    func.effects = {'Color' : 'changed_color_balance',
+                    'Brightness' : 'changed_brightness',
+                    'Contrast' : 'changed_contrast',
+                    'Sharpness' : 'changed_sharpness'}
+    return func
 
-def change_contrast(pic, slider):
-    if pic.changed_color_balance or \
-       pic.changed_brighness or     \
-       pic.changed_sharpness:
+@build_effects_dict
+def change_effect(pic, slider, effect):
+    check_effects = {}
+    for k, v in change_effect.effects.items():
+        if k != effect:
+            check_effects[v] = getattr(pic, v)
+    if any(check_effects.values()):
         pic.cache_colors = pic.to_display.split()
-        pic.changed_color_balance = False
-        pic.changed_brighness = False
-        pic.changed_sharpness = False
+        for attr in check_effects.keys():
+            setattr(pic, attr, False)
     image = merge(pic.cache_colors)
-    enh = ImageEnhance.Contrast(image)
-    enhanced_pic = enh.enhance(slider.value())
-    pic.changed_contrast = True
-    return enhanced_pic
-
-def change_brightness(pic, slider):
-    if pic.changed_color_balance or \
-       pic.changed_contrast or      \
-       pic.changed_sharpness:
-        pic.cache_colors = pic.to_display.split()
-        pic.changed_color_balance = False
-        pic.changed_contrast = False
-        pic.changed_sharpness = False
-    image = merge(pic.cache_colors)
-    enh = ImageEnhance.Brightness(image)
-    enhanced_pic = enh.enhance(slider.value())
-    pic.changed_brighness = True
-    return enhanced_pic
-
-def change_sharpness(pic, slider):
-    if pic.changed_color_balance or \
-       pic.changed_contrast or      \
-       pic.changed_brighness:
-        pic.cache_colors = pic.to_display.split()
-        pic.changed_color_balance = False
-        pic.changed_contrast = False
-        pic.changed_brighness = False
-    image = merge(pic.cache_colors)
-    enh = ImageEnhance.Sharpness(image)
-    enhanced_pic = enh.enhance(slider.value())
-    pic.changed_sharpness = True
-    return enhanced_pic
+    setattr(pic, change_effect.effects[effect], True)
+    enh = getattr(ImageEnhance, effect)(image)
+    return enh.enhance(slider.value())

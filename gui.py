@@ -273,7 +273,7 @@ class Picture(QLabel):
         self.name = None
         self.path = None
         self.parent = parent
-        self.effects = {'Color' : 'changed_color_balance',
+        self.effects = {'Color' : 'changed_rgb',
                         'Brightness' : 'changed_brightness',
                         'Contrast' : 'changed_contrast',
                         'Sharpness' : 'changed_sharpness'}

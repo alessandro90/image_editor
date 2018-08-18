@@ -273,16 +273,17 @@ class Picture(QLabel):
         self.name = None
         self.path = None
         self.parent = parent
-        self.changed_color_balance = False
-        self.changed_contrast = False
-        self.changed_brightness = False
-        self.changed_sharpness = False
         self.effects = {'Color' : 'changed_color_balance',
                         'Brightness' : 'changed_brightness',
                         'Contrast' : 'changed_contrast',
                         'Sharpness' : 'changed_sharpness'}
+        self.setEffects()
         self.setMinimumSize(150, 150) # Minimum size of the displayed picture.
         self.setStyleSheet(stylesheets.label())
+
+    def setEffects(self):
+        for v in self.effects.values():
+            setattr(self, v, False)
 
     def get_image(self, fname):
         self.prep_image(fname)
@@ -303,10 +304,7 @@ class Picture(QLabel):
             contrast_slider.reset()
             brightness_slider.reset()
             sharpness_slider.reset()
-            self.changed_color_balance = False
-            self.changed_contrast = False
-            self.changed_brightness = False
-            self.changed_sharpness = False
+            self.setEffects()
             self.to_display, self.cache_colors = image_tools.change_color(self, 
                 color, 
                 rgb_slider)

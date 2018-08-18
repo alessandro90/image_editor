@@ -273,6 +273,14 @@ class Picture(QLabel):
         self.name = None
         self.path = None
         self.parent = parent
+        self.changed_color_balance = False
+        self.changed_contrast = False
+        self.changed_brightness = False
+        self.changed_sharpness = False
+        self.effects = {'Color' : 'changed_color_balance',
+                        'Brightness' : 'changed_brightness',
+                        'Contrast' : 'changed_contrast',
+                        'Sharpness' : 'changed_sharpness'}
         self.setMinimumSize(150, 150) # Minimum size of the displayed picture.
         self.setStyleSheet(stylesheets.label())
 
@@ -284,14 +292,6 @@ class Picture(QLabel):
         self.original = image_tools.prepare_image(fname, self)
         self.to_display = image_tools.copy(self.original)
         self.cache_colors = image_tools.get_cache_colors(self)
-        self.changed_color_balance = False
-        self.changed_contrast = False
-        self.changed_brightness = False
-        self.changed_sharpness = False
-        self.effects = {'Color' : 'changed_color_balance',
-                        'Brightness' : 'changed_brightness',
-                        'Contrast' : 'changed_contrast',
-                        'Sharpness' : 'changed_sharpness'}
         self.qtTweaks()
         self.adjustSize()
         self.setPixmap()

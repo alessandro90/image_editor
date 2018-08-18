@@ -121,7 +121,7 @@ class Commands(QWidget):
 
         color_balance = QPushButton('Color balance', self)
         color_balance.setStyleSheet(stylesheets.button(bg = '#2f95e1'))
-        color_balance.clicked.connect(lambda : self.color_balance_slider.reset())
+        color_balance.clicked.connect(lambda : self.color_slider.reset())
 
         brightness = QPushButton('Brightness', self)
         brightness.setStyleSheet(stylesheets.button(bg = '#2fe180'))
@@ -140,12 +140,12 @@ class Commands(QWidget):
         reset_all.clicked.connect(self.parent.totalReset)
 
         colors_grid = QGridLayout()
-        colors_grid.addWidget(self.color_sliders['red'], 1, 0)
-        colors_grid.addWidget(self.color_sliders['green'], 1, 1)
-        colors_grid.addWidget(self.color_sliders['blue'], 1, 2)
+        colors_grid.addWidget(self.rgb_sliders['red'], 1, 0)
+        colors_grid.addWidget(self.rgb_sliders['green'], 1, 1)
+        colors_grid.addWidget(self.rgb_sliders['blue'], 1, 2)
         
         effects_grid = QGridLayout()
-        effects_grid.addWidget(self.color_balance_slider, 0, 0)
+        effects_grid.addWidget(self.color_slider, 0, 0)
         effects_grid.addWidget(self.contrast_slider, 0, 1)
         effects_grid.addWidget(self.brightness_slider, 0, 2)
         effects_grid.addWidget(self.sharpness_slider, 0, 3)
@@ -178,40 +178,40 @@ class Commands(QWidget):
             slider.reset()
 
     def resetColorSliders(self):
-        for slider in self.color_sliders.values():
+        for slider in self.rgb_sliders.values():
             slider.reset()
 
     def makeColorSliders(self):
-        self.color_sliders = {}
+        self.rgb_sliders = {}
         for color, html_color in zip(('red', 'green', 'blue'), 
             ('#ff0000', '#5dff00', '#0008ff')):
-            self.color_sliders[color] = ResetSlider(0, -255, 255, Qt.Vertical)
-            self.color_sliders[color].valueChanged.connect(
-                partial(self.pic.changeColor, color, 
-                    self.color_sliders[color], 
-                    self.color_balance_slider, 
+            self.rgb_sliders[color] = ResetSlider(0, -255, 255, Qt.Vertical)
+            self.rgb_sliders[color].valueChanged.connect(
+                partial(self.pic.changeRGB, color, 
+                    self.rgb_sliders[color], 
+                    self.color_slider, 
                     self.contrast_slider, 
                     self.brightness_slider, 
                     self.sharpness_slider)
             )
             
-            self.color_sliders[color].setStyleSheet(
+            self.rgb_sliders[color].setStyleSheet(
                 stylesheets.slider_stylesheet(handle_color = '#FFFFFF', 
                                               groove_color_start = '#000000', 
                                               groove_color_stop = html_color)
             )
-            self.sliders.append(self.color_sliders[color])
+            self.sliders.append(self.rgb_sliders[color])
 
     def makeColorBalanceSlider(self):
-        self.color_balance_slider = ResetSlider(1000, 0, 2000, 
+        self.color_slider = ResetSlider(1000, 0, 2000, 
             1000, Qt.Vertical)
-        self.color_balance_slider.valueChanged.connect(
-            partial(self.pic.changeEffect, self.color_balance_slider, 'Color')
+        self.color_slider.valueChanged.connect(
+            partial(self.pic.changeEffect, self.color_slider, 'Color')
         )
-        self.color_balance_slider.setStyleSheet(
+        self.color_slider.setStyleSheet(
             stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#2f95e1')
         )
-        self.sliders.append(self.color_balance_slider)
+        self.sliders.append(self.color_slider)
 
     def makeContrastSlider(self):
         self.contrast_slider = ResetSlider(1000, 0, 2000, 
@@ -296,10 +296,10 @@ class Picture(QLabel):
         self.adjustSize()
         self.setPixmap()
 
-    def changeColor(self, color, color_slider, color_balance_slider, 
+    def changeRGB(self, color, rgb_slider, color_slider, 
         contrast_slider, brightness_slider, sharpness_slider):
         if self.image:
-            color_balance_slider.reset()
+            color_slider.reset()
             contrast_slider.reset()
             brightness_slider.reset()
             sharpness_slider.reset()
@@ -309,7 +309,7 @@ class Picture(QLabel):
             self.changed_sharpness = False
             self.to_display, self.cache_colors = image_tools.change_color(self, 
                 color, 
-                color_slider)
+                rgb_slider)
             self.update()
 
     def changeEffect(self, slider, effect):

@@ -288,6 +288,10 @@ class Picture(QLabel):
         self.changed_contrast = False
         self.changed_brightness = False
         self.changed_sharpness = False
+        self.effects = {'Color' : 'changed_color_balance',
+                        'Brightness' : 'changed_brightness',
+                        'Contrast' : 'changed_contrast',
+                        'Sharpness' : 'changed_sharpness'}
         self.qtTweaks()
         self.adjustSize()
         self.setPixmap()

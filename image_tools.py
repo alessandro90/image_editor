@@ -54,17 +54,9 @@ def change_color(pic, color, slider):
     cache_colors = (m[colors[0]], m[colors[1]], m[colors[2]])
     return merge(cache_colors), cache_colors
 
-def build_effects_dict(func):
-    func.effects = {'Color' : 'changed_color_balance',
-                    'Brightness' : 'changed_brightness',
-                    'Contrast' : 'changed_contrast',
-                    'Sharpness' : 'changed_sharpness'}
-    return func
-
-@build_effects_dict
 def change_effect(pic, slider, effect):
     check_effects = {}
-    for k, v in change_effect.effects.items():
+    for k, v in pic.effects.items():
         if k != effect:
             check_effects[v] = getattr(pic, v)
     if any(check_effects.values()):
@@ -72,6 +64,6 @@ def change_effect(pic, slider, effect):
         for attr in check_effects.keys():
             setattr(pic, attr, False)
     image = merge(pic.cache_colors)
-    setattr(pic, change_effect.effects[effect], True)
+    setattr(pic, pic.effects[effect], True)
     enh = getattr(ImageEnhance, effect)(image)
     return enh.enhance(slider.value())

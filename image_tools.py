@@ -9,9 +9,6 @@ def load_image(path):
 def merge(channels, mode = "RGB"):
     return Image.merge(mode, channels)
 
-def copy(pic):
-    return pic.copy()
-
 def prepare_image(path, pic):
     image = load_image(path)
     if image.mode == "RGBA" or image.mode == "L":

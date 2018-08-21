@@ -42,7 +42,11 @@ class MainWindow(QMainWindow):
         self.pic = Picture(self)
         self.commands = Commands(self, self.pic)
 
-        self.newAction(fileMenu, 'Reset all', 'Ctrl+R', 'Reset picture', self.totalReset)
+        self.newAction(fileMenu, 
+                       'Reset all', 
+                       'Ctrl+R', 
+                       'Reset picture', 
+                       self.totalReset)
 
         grid = QGridLayout()
         grid.addWidget(self.commands, 0, 0)
@@ -111,31 +115,31 @@ class Commands(QWidget):
         self.effect_sliders = {}
 
         self.makeEffectSlider(effect = 'Contrast',
-            groove_color_stop = '#7d2fe1')
+                              groove_color_stop = '#7d2fe1')
         self.makeEffectSlider(effect = 'Color',
-            groove_color_stop = '#2f95e1')
+                              groove_color_stop = '#2f95e1')
         self.makeEffectSlider(effect = 'Brightness',
-            groove_color_stop = '#2fe180')
+                              groove_color_stop = '#2fe180')
         self.makeEffectSlider(effect = 'Sharpness',
-            groove_color_stop = '#e1832f')
+                              groove_color_stop = '#e1832f')
 
         self.makeRGBSliders()
 
         contrast = QPushButton('Contrast', self)
         contrast.setStyleSheet(stylesheets.button(bg = '#7d2fe1'))
-        contrast.clicked.connect(lambda : self.contrast_slider.reset())
+        contrast.clicked.connect(self.effect_sliders['Contrast'].reset)
 
         color_balance = QPushButton('Color balance', self)
         color_balance.setStyleSheet(stylesheets.button(bg = '#2f95e1'))
-        color_balance.clicked.connect(lambda : self.color_slider.reset())
+        color_balance.clicked.connect(self.effect_sliders['Color'].reset)
 
         brightness = QPushButton('Brightness', self)
         brightness.setStyleSheet(stylesheets.button(bg = '#2fe180'))
-        brightness.clicked.connect(lambda : self.brightness_slider.reset())
+        brightness.clicked.connect(self.effect_sliders['Brightness'].reset)
 
         sharpness = QPushButton('Sharpness', self)
         sharpness.setStyleSheet(stylesheets.button(bg = '#e1832f'))
-        sharpness.clicked.connect(lambda : self.sharpness_slider.reset())        
+        sharpness.clicked.connect(self.effect_sliders['Sharpness'].reset)
 
         reset_colors = QPushButton('Reset colors', self)
         reset_colors.setStyleSheet(stylesheets.button())
@@ -215,10 +219,11 @@ class Commands(QWidget):
                          minv = 0, 
                          maxv = 2000, 
                          scale_factor = 1000):
-        name = self.pic.effects[effect][8:] + '_slider'
-        setattr(self, name,
-            ResetSlider(default, minv, maxv, scale_factor, Qt.Vertical))
-        slider = getattr(self, name)
+        slider = ResetSlider(default, 
+                             minv, 
+                             maxv, 
+                             scale_factor, 
+                             Qt.Vertical)
         slider.valueChanged.connect(
             partial(self.pic.changeEffect, slider, effect)
         )
@@ -274,7 +279,7 @@ class Picture(QLabel):
     def prep_image(self, fname):
         QImageReader.supportedImageFormats()
         self.original = image_tools.prepare_image(fname, self)
-        self.to_display = image_tools.copy(self.original)
+        self.to_display = self.original
         self.cache_colors = image_tools.get_cache_colors(self)
         self.qtTweaks()
         self.adjustSize()
@@ -288,7 +293,8 @@ class Picture(QLabel):
             brightness_slider.reset()
             sharpness_slider.reset()
             self.setEffects()
-            self.to_display, self.cache_colors = image_tools.change_color(self, 
+            self.to_display, self.cache_colors = image_tools.change_color(
+                self,
                 color, 
                 rgb_slider)
             self.update()

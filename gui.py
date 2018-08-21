@@ -108,12 +108,18 @@ class Commands(QWidget):
         self.parent = parent
         self.pic = pic
         self.sliders = []
+        self.effect_sliders = {}
 
-        self.makeContrastSlider()
-        self.makeColorSlider()
-        self.makeBrightnessSlider()
-        self.makeSharpnessSlider()
-        self.makeColorSliders()
+        self.makeEffectSlider(effect = 'Contrast',
+            groove_color_stop = '#7d2fe1')
+        self.makeEffectSlider(effect = 'Color',
+            groove_color_stop = '#2f95e1')
+        self.makeEffectSlider(effect = 'Brightness',
+            groove_color_stop = '#2fe180')
+        self.makeEffectSlider(effect = 'Sharpness',
+            groove_color_stop = '#e1832f')
+
+        self.makeRGBSliders()
 
         contrast = QPushButton('Contrast', self)
         contrast.setStyleSheet(stylesheets.button(bg = '#7d2fe1'))
@@ -133,7 +139,7 @@ class Commands(QWidget):
 
         reset_colors = QPushButton('Reset colors', self)
         reset_colors.setStyleSheet(stylesheets.button())
-        reset_colors.clicked.connect(self.resetColorSliders)
+        reset_colors.clicked.connect(self.resetRGBSliders)
 
         reset_all = QPushButton('Reset image', self)
         reset_all.setStyleSheet(stylesheets.button())
@@ -145,10 +151,10 @@ class Commands(QWidget):
         colors_grid.addWidget(self.rgb_sliders['blue'], 1, 2)
         
         effects_grid = QGridLayout()
-        effects_grid.addWidget(self.color_slider, 0, 0)
-        effects_grid.addWidget(self.contrast_slider, 0, 1)
-        effects_grid.addWidget(self.brightness_slider, 0, 2)
-        effects_grid.addWidget(self.sharpness_slider, 0, 3)
+        effects_grid.addWidget(self.effect_sliders['Color'], 0, 0)
+        effects_grid.addWidget(self.effect_sliders['Contrast'], 0, 1)
+        effects_grid.addWidget(self.effect_sliders['Brightness'], 0, 2)
+        effects_grid.addWidget(self.effect_sliders['Sharpness'], 0, 3)
 
         buttons_grid = QGridLayout()
         buttons_grid.setSpacing(0)
@@ -177,24 +183,24 @@ class Commands(QWidget):
         for slider in self.sliders:
             slider.reset()
 
-    def resetColorSliders(self):
+    def resetRGBSliders(self):
         for slider in self.rgb_sliders.values():
             slider.reset()
 
-    def makeColorSliders(self):
+    def makeRGBSliders(self):
         self.rgb_sliders = {}
         for color, html_color in zip(('red', 'green', 'blue'), 
-            ('#ff0000', '#5dff00', '#0008ff')):
+                                     ('#ff0000', '#5dff00', '#0008ff')):
             self.rgb_sliders[color] = ResetSlider(0, -255, 255, Qt.Vertical)
             self.rgb_sliders[color].valueChanged.connect(
                 partial(self.pic.changeRGB, color, 
-                    self.rgb_sliders[color], 
-                    self.color_slider, 
-                    self.contrast_slider, 
-                    self.brightness_slider, 
-                    self.sharpness_slider)
+                        self.rgb_sliders[color], 
+                        self.effect_sliders['Color'], 
+                        self.effect_sliders['Contrast'], 
+                        self.effect_sliders['Brightness'], 
+                        self.effect_sliders['Sharpness']
+                )
             )
-            
             self.rgb_sliders[color].setStyleSheet(
                 stylesheets.slider_stylesheet(handle_color = '#FFFFFF', 
                                               groove_color_start = '#000000', 
@@ -202,49 +208,26 @@ class Commands(QWidget):
             )
             self.sliders.append(self.rgb_sliders[color])
 
-    def makeColorSlider(self):
-        self.color_slider = ResetSlider(1000, 0, 2000, 
-            1000, Qt.Vertical)
-        self.color_slider.valueChanged.connect(
-            partial(self.pic.changeEffect, self.color_slider, 'Color')
+    def makeEffectSlider(self, *, effect, 
+                         groove_color_stop,
+                         handle_color = '#FFFFFF',
+                         default = 1000, 
+                         minv = 0, 
+                         maxv = 2000, 
+                         scale_factor = 1000):
+        name = self.pic.effects[effect][8:] + '_slider'
+        setattr(self, name,
+            ResetSlider(default, minv, maxv, scale_factor, Qt.Vertical))
+        slider = getattr(self, name)
+        slider.valueChanged.connect(
+            partial(self.pic.changeEffect, slider, effect)
         )
-        self.color_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#2f95e1')
+        slider.setStyleSheet(
+            stylesheets.slider_stylesheet(handle_color = handle_color, 
+                                          groove_color_stop = groove_color_stop)
         )
-        self.sliders.append(self.color_slider)
-
-    def makeContrastSlider(self):
-        self.contrast_slider = ResetSlider(1000, 0, 2000, 
-            1000, Qt.Vertical)
-        self.contrast_slider.valueChanged.connect(
-            partial(self.pic.changeEffect, self.contrast_slider, 'Contrast')
-        )
-        self.contrast_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#7d2fe1')
-        )
-        self.sliders.append(self.contrast_slider)
-
-    def makeBrightnessSlider(self):
-        self.brightness_slider = ResetSlider(1000, 0, 2000, 
-            1000, Qt.Vertical)
-        self.brightness_slider.valueChanged.connect(
-            partial(self.pic.changeEffect, self.brightness_slider, 'Brightness')
-        )
-        self.brightness_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#2fe180')
-        )
-        self.sliders.append(self.brightness_slider)
-
-    def makeSharpnessSlider(self):
-        self.sharpness_slider = ResetSlider(1000, 0, 2000, 
-            1000, Qt.Vertical)
-        self.sharpness_slider.valueChanged.connect(
-            partial(self.pic.changeEffect, self.sharpness_slider, 'Sharpness')
-        )
-        self.sharpness_slider.setStyleSheet(
-            stylesheets.slider_stylesheet(handle_color = '#FFFFFF', groove_color_stop = '#e1832f')
-        )
-        self.sliders.append(self.sharpness_slider)
+        self.sliders.append(slider)
+        self.effect_sliders[effect] = slider
 
 
 class ResetSlider(QSlider):

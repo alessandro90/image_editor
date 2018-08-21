@@ -110,7 +110,7 @@ class Commands(QWidget):
         self.sliders = []
 
         self.makeContrastSlider()
-        self.makeColorBalanceSlider()
+        self.makeColorSlider()
         self.makeBrightnessSlider()
         self.makeSharpnessSlider()
         self.makeColorSliders()
@@ -202,7 +202,7 @@ class Commands(QWidget):
             )
             self.sliders.append(self.rgb_sliders[color])
 
-    def makeColorBalanceSlider(self):
+    def makeColorSlider(self):
         self.color_slider = ResetSlider(1000, 0, 2000, 
             1000, Qt.Vertical)
         self.color_slider.valueChanged.connect(

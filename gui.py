@@ -42,11 +42,17 @@ class MainWindow(QMainWindow):
         self.pic = Picture(self)
         self.commands = Commands(self, self.pic)
 
-        self.newAction(fileMenu, 
-                       'Reset all', 
+        imageMenu = menubar.addMenu('&Image')
+        self.newAction(imageMenu, 
+                       'Reset image', 
                        'Ctrl+R', 
-                       'Reset picture', 
-                       self.totalReset)
+                       'Reset image', 
+                       self.commands.totalReset)
+        self.newAction(imageMenu, 
+                       'Clear', 
+                       'Ctrl+C', 
+                       'Remove image', 
+                       self.commands.delete)
 
         grid = QGridLayout()
         grid.addWidget(self.commands, 0, 0)
@@ -55,15 +61,15 @@ class MainWindow(QMainWindow):
 
         wid.setLayout(grid)
         self.setGeometry(100, 100, 1280, 720)
-        self.setWindowTitle('Insert Image Test')
+        self.setWindowTitle('Pycture')
         self.show()
 
-    def newAction(self, fileMenu, name, shortcut, statustip, connection):
+    def newAction(self, menu, name, shortcut, statustip, connection):
         action = QAction(name, self)
         action.setShortcut(shortcut)
         action.setStatusTip(statustip)
         action.triggered.connect(connection)
-        fileMenu.addAction(action)
+        menu.addAction(action)
 
     def showOpenDialog(self):
         if self.open_path and os.path.isdir(self.open_path):
@@ -96,14 +102,6 @@ class MainWindow(QMainWindow):
             self.save_path, _ = os.path.split(fname[0])
             self.pic.name = fname[0]
             self.pic.to_display.save(self.pic.name)
-
-    def totalReset(self):
-        for slider in self.commands.sliders:
-            slider.reset()
-        if self.pic.image:
-            self.pic.to_display = self.pic.original
-            self.pic.cache_colors = image_tools.get_cache_colors(self.pic)
-            self.pic.update()
 
 
 class Commands(QWidget):
@@ -147,7 +145,7 @@ class Commands(QWidget):
 
         reset_all = QPushButton('Reset image', self)
         reset_all.setStyleSheet(stylesheets.button())
-        reset_all.clicked.connect(self.parent.totalReset)
+        reset_all.clicked.connect(self.totalReset)
 
         colors_grid = QGridLayout()
         colors_grid.addWidget(self.rgb_sliders['red'], 1, 0)
@@ -233,6 +231,28 @@ class Commands(QWidget):
         )
         self.sliders.append(slider)
         self.effect_sliders[effect] = slider
+
+    def delete(self):
+        # Raises a warning but it doesn't seem harmful.
+        self.resetSliders()
+        if self.pic.image:
+            self.to_display = None
+            self.original = None
+            self.image = None
+            self.pic.name = None
+            self.pic.path = None
+            self.pic.cache_colors = None
+            self.pic.qim = QImage()
+            self.pic.adjustSize()
+            self.pic.setPixmap()
+
+
+    def totalReset(self):
+        self.resetSliders()
+        if self.pic.image:
+            self.pic.to_display = self.pic.original
+            self.pic.cache_colors = image_tools.get_cache_colors(self.pic)
+            self.pic.update()
 
 
 class ResetSlider(QSlider):

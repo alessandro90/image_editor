@@ -8,7 +8,9 @@ from PyQt5.QtWidgets import QMainWindow, \
                             QFileDialog, \
                             QPushButton, \
                             QSizePolicy, \
-                            QSlider
+                            QSlider,     \
+                            QTabWidget,  \
+                            QCheckBox
 from PyQt5.QtGui import QImage,       \
                         QImageReader, \
                         QPixmap
@@ -40,7 +42,12 @@ class MainWindow(QMainWindow):
         self.newAction(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.saveCurrent)
 
         self.pic = Picture(self)
+        policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.pic.setSizePolicy(policy)
+
         self.commands = Commands(self, self.pic)
+
+        self.filters = Filters(self)
 
         imageMenu = menubar.addMenu('&Image')
         self.newAction(imageMenu, 
@@ -54,8 +61,15 @@ class MainWindow(QMainWindow):
                        'Remove image', 
                        self.commands.delete)
 
+        self.commands_panel = QTabWidget()
+        policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        self.commands_panel.setSizePolicy(policy)
+
+        self.commands_panel.addTab(self.commands, 'Sliders')
+        self.commands_panel.addTab(self.filters, 'Filters')
+
         grid = QGridLayout()
-        grid.addWidget(self.commands, 0, 0)
+        grid.addWidget(self.commands_panel, 0, 0)
         grid.setSpacing(10)
         grid.addWidget(self.pic, 0, 1)
 
@@ -104,6 +118,13 @@ class MainWindow(QMainWindow):
             self.pic.to_display.save(self.pic.name)
 
 
+class Filters(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.pic = self.parent.pic
+
+
 class Commands(QWidget):
     def __init__(self, parent, pic):
         super().__init__(parent)
@@ -120,7 +141,7 @@ class Commands(QWidget):
                               groove_color_stop = '#2fe180')
         self.makeEffectSlider(effect = 'Sharpness',
                               groove_color_stop = '#e1832f')
-
+        # Call _after_ all makeEffectSlider.
         self.makeRGBSliders()
 
         contrast = QPushButton('Contrast', self)
@@ -179,6 +200,7 @@ class Commands(QWidget):
             slider.resize(10, self.parent.height() // 3)
 
     def resizeEvent(self, event):
+        super().resizeEvent(event)
         self.adjustSize()
 
     def resetSliders(self):
@@ -236,16 +258,15 @@ class Commands(QWidget):
         # Raises a warning but it doesn't seem harmful.
         self.resetSliders()
         if self.pic.image:
-            self.to_display = None
-            self.original = None
-            self.image = None
-            self.pic.name = None
-            self.pic.path = None
-            self.pic.cache_colors = None
             self.pic.qim = QImage()
             self.pic.adjustSize()
             self.pic.setPixmap()
-
+            self.pic.to_display = None
+            self.pic.original = None
+            self.pic.image = None
+            self.pic.name = None
+            self.pic.path = None
+            self.pic.cache_colors = None
 
     def totalReset(self):
         self.resetSliders()

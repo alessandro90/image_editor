@@ -1,6 +1,7 @@
-from PIL import Image
-from PIL import ImageChops
-from PIL import ImageEnhance
+from PIL import Image,        \
+                ImageChops,   \
+                ImageEnhance, \
+                ImageFilter
 
 def load_image(path):
     im = Image.open(path)

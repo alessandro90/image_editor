@@ -31,3 +31,10 @@ def label(border = '#d0d0d0'):
     return f"""
         border: 5px solid {border}
     """
+
+def check_box(*, color = '#FFFFFF'):
+    return f"""
+        QCheckBox {{
+            color: {color}
+        }}
+    """

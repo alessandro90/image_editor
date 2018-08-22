@@ -1,9 +1,11 @@
+from collections import OrderedDict
 import os
 from functools import partial
 from PyQt5.QtWidgets import QMainWindow, \
                             QWidget,     \
                             QLabel,      \
                             QGridLayout, \
+                            QVBoxLayout, \
                             QAction,     \
                             QFileDialog, \
                             QPushButton, \
@@ -123,6 +125,29 @@ class Filters(QWidget):
         super().__init__(parent)
         self.parent = parent
         self.pic = self.parent.pic
+
+        filters = OrderedDict()
+        filters['BLUR'] = QCheckBox('Blur', self)
+        filters['CONTOUR'] = QCheckBox('Contour', self)
+        filters['DETAIL'] = QCheckBox('Detail', self)
+        filters['EDGE_ENHANCE'] = QCheckBox('Edge enhance', self)
+        filters['EDGE_ENHANCE_MORE'] = QCheckBox('More edge enhance', self)
+        filters['EMBOSS'] = QCheckBox('Emboss', self)
+        filters['FIND_EDGES'] = QCheckBox('Find edges', self)
+        filters['SHARPEN'] = QCheckBox('Sharpen', self)
+        filters['SMOOTH'] = QCheckBox('Smooth', self)
+        filters['SMOOTH_MORE'] = QCheckBox('More smooth', self)
+
+        vbox = QVBoxLayout()
+        for filter_name, check_filter in filters.items():
+            check_filter.setStyleSheet(stylesheets.check_box())
+            # check_filter.stateChanged.connect(partial(self.apply_filter, name))
+            vbox.addWidget(check_filter)
+        vbox.setAlignment(Qt.AlignHCenter)
+        self.setLayout(vbox)
+
+    # def apply_filter(self, name):
+
 
 
 class Commands(QWidget):

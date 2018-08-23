@@ -89,10 +89,11 @@ class MainWindow(QMainWindow):
         else:
             open_path = os.path.dirname(os.path.realpath(__file__))
         fname = QFileDialog.getOpenFileName(self, 'Open file', 
-        open_path, '*png *jpg;; *.png;; *jpg')
+        open_path, '*png *jpg *tif;; *.png;; *jpg;; *tif')
         if fname[0]:
             self.open_path, _ = os.path.split(fname[0])
-            self.pic.get_image(fname[0])
+            self.pic.path = fname[0]
+            self.pic.get_image()
             self.pic.name = None
             self.commands.reset_sliders()
             self.filters.reset()
@@ -110,7 +111,7 @@ class MainWindow(QMainWindow):
             save_folder = os.path.dirname(os.path.realpath(__file__))
 
         fname = QFileDialog.getSaveFileName(self, 'Save file as..', 
-            save_folder, '*.png;; *jpg')
+            save_folder, '*.png;; *jpg;; *tif')
         if fname[0]:
             self.save_path, _ = os.path.split(fname[0])
             self.pic.name = fname[0]

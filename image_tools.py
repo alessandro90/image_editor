@@ -7,15 +7,15 @@ def load_image(path):
     im = Image.open(path)
     return im
 
-def merge(channels, mode = "RGB"):
+def merge(channels, mode = "RGBA"):
     return Image.merge(mode, channels)
 
 def prepare_image(path, pic):
     image = load_image(path)
-    if image.mode == "RGBA" or image.mode == "L":
-        image = image.convert("RGB")
+    if image.mode == "L" or image.mode == 'RGB':
+        image = image.convert("RGBA")
     if image.mode == "P":
-        image = image.convert(mode = "RGB", 
+        image = image.convert(mode = "RGBA", 
             palette = image.getpalette())
     return image
 
@@ -35,8 +35,8 @@ def get_cache_colors(pic):
     return pic.original.split()
 
 def change_RGB_color(pic, color, slider):
-    r, g, b = pic.original.split()
-    dr, dg, db = pic.to_display.split()
+    r, g, b, _ = pic.original.split()
+    dr, dg, db, alpha = pic.to_display.split()
     colors = 'red', 'green', 'blue'
     modes = {'red' : r, 'green' : g, 'blue' : b}
     dmodes = {'red' : dr, 'green' : dg, 'blue' : db}
@@ -49,7 +49,7 @@ def change_RGB_color(pic, color, slider):
             if i != color:
                 m[i] = dmodes[i]
     m[color] = m[color].point(change_pixel_color(slider.value()))
-    cache_colors = (m[colors[0]], m[colors[1]], m[colors[2]])
+    cache_colors = (m[colors[0]], m[colors[1]], m[colors[2]], alpha)
     return merge(cache_colors), cache_colors
 
 def change_effect(pic, slider, effect, effects):

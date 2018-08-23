@@ -173,16 +173,22 @@ class Commands(QWidget):
     def change_effect(self, slider, effect):
         if self.pic.image:
             self.filters.reset()
-            self.pic.to_display = image_tools.change_effect(self.pic, slider, effect, self.effects)
+            self.pic.to_display = image_tools.change_effect(
+                self.pic, 
+                slider, 
+                effect, 
+                self.effects)
             self.pic.update()
 
     def delete(self):
         # Raises a warning but it doesn't seem harmful.
         self.reset_sliders()
         self.filters.reset()
+        self.filters.transparency.setChecked(False)
         self.pic.reset()
 
     def total_reset(self):
         self.reset_sliders()
         self.filters.reset()
+        self.filters.transparency.setChecked(False)
         self.pic.restore()

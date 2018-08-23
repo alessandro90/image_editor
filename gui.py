@@ -97,6 +97,7 @@ class MainWindow(QMainWindow):
             self.pic.name = None
             self.commands.reset_sliders()
             self.filters.reset()
+            self.filters.transparency.setChecked(False)
 
     def save_current(self):
         if self.pic.name:
@@ -105,14 +106,15 @@ class MainWindow(QMainWindow):
             self.show_save_dialog()
 
     def show_save_dialog(self):
-        if self.save_path and os.path.isdir(self.save_path):
-            save_folder = self.save_path
-        else:
-            save_folder = os.path.dirname(os.path.realpath(__file__))
-
-        fname = QFileDialog.getSaveFileName(self, 'Save file as..', 
-            save_folder, '*.png;; *jpg;; *tif')
-        if fname[0]:
-            self.save_path, _ = os.path.split(fname[0])
-            self.pic.name = fname[0]
-            self.pic.to_display.save(self.pic.name)
+        if self.pic.image:
+            if self.save_path and os.path.isdir(self.save_path):
+                save_folder = self.save_path
+            else:
+                save_folder = os.path.dirname(os.path.realpath(__file__))
+    
+            fname = QFileDialog.getSaveFileName(self, 'Save file as..', 
+                save_folder, '*.png;; *jpg;; *tif')
+            if fname[0]:
+                self.save_path, _ = os.path.split(fname[0])
+                self.pic.name = fname[0]
+                self.pic.to_display.save(self.pic.name)

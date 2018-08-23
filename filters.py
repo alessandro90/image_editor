@@ -26,11 +26,17 @@ class Filters(QWidget):
         self.filters['SMOOTH'] = QCheckBox('Smooth', self)
         self.filters['SMOOTH_MORE'] = QCheckBox('More smooth', self)
 
+        self.transparency = QCheckBox('Transparency', self)
+
         vbox = QVBoxLayout()
         for filter_name, check_filter in self.filters.items():
             check_filter.setStyleSheet(stylesheets.check_box())
             check_filter.stateChanged.connect(partial(self.apply, filter_name))
             vbox.addWidget(check_filter)
+
+        self.transparency.setStyleSheet(stylesheets.check_box())
+        self.transparency.stateChanged.connect(self.make_pic_transparent)
+        vbox.addWidget(self.transparency)
         vbox.setAlignment(Qt.AlignHCenter)
         self.setLayout(vbox)
 
@@ -40,10 +46,25 @@ class Filters(QWidget):
                 [f.setChecked(False) for n, f in self.filters.items() if n != name]
                 self.pic.before_filter = self.pic.to_display
                 self.pic.to_display = image_tools.apply_filter(self.pic, name)
-                self.pic.update()
             else:
                 self.pic.to_display = self.pic.before_filter
-                self.pic.update()
+            self.pic.update()
+
+    def make_pic_transparent(self, state):
+        if self.pic.image:
+            if state == Qt.Checked:
+                data = self.pic.to_display.getdata()
+                trsp_image_data = []
+                for pix in data:
+                    if pix[:3] == (255, 255, 255):
+                        trsp_image_data.append((255, 255, 255, 0))
+                    else:
+                        trsp_image_data.append(pix)
+                self.pic.to_display.putdata(trsp_image_data)
+            else:
+                self.pic.to_display.putalpha(self.pic.original_alpha)
+            self.pic.cache_colors = self.pic.to_display.split()
+            self.pic.update()
 
     def reset(self):
         for f in self.filters.values():

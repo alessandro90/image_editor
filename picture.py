@@ -28,9 +28,10 @@ class Picture(QLabel):
         QImageReader.supportedImageFormats()
         self.original = image_tools.prepare_image(self.path, self)
         self.display_properties()
-        self.to_display = self.original
-        self.before_filter = self.original
+        self.to_display = self.original.copy()
+        self.before_filter = self.original.copy()
         self.cache_colors = image_tools.get_cache_colors(self)
+        self.original_alpha = self.original.split()[3].copy()
         self.qt_tweaks()
         self.adjust_size()
         self.set_pixmap()          
@@ -43,8 +44,8 @@ class Picture(QLabel):
 
     def qt_tweaks(self):
         # This is the only way to avoid a Windows crash.
-        r, g, b = self.to_display.split()
-        image = image_tools.merge((b, g, r))
+        r, g, b, alpha = self.to_display.split()
+        image = image_tools.merge((b, g, r, alpha))
         data = image_tools.get_data(image)
         self.qim = QImage(data, image.size[0], image.size[1],
             QImage.Format_ARGB32)
@@ -71,7 +72,7 @@ class Picture(QLabel):
 
     def restore(self):
         if self.image:
-            self.to_display = self.original
+            self.to_display = self.original.copy()
             self.cache_colors = image_tools.get_cache_colors(self)
             self.update()
 

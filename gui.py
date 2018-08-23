@@ -37,11 +37,11 @@ class MainWindow(QMainWindow):
 
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
-        self.newAction(fileMenu, 'Open', 'Ctrl+O', 'Open new file', 
-            self.showOpenDialog)
-        self.newAction(fileMenu, 'Save as..', 'Ctrl+Shift+S', 'Save file as..', 
-            self.showSaveDialog)
-        self.newAction(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.saveCurrent)
+        self.new_action(fileMenu, 'Open', 'Ctrl+O', 'Open new file', 
+            self.show_open_dialog)
+        self.new_action(fileMenu, 'Save as..', 'Ctrl+Shift+S', 'Save file as..', 
+            self.show_save_dialog)
+        self.new_action(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.save_current)
 
         self.pic = Picture(self)
         policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -52,12 +52,12 @@ class MainWindow(QMainWindow):
         self.filters = Filters(self)
 
         imageMenu = menubar.addMenu('&Image')
-        self.newAction(imageMenu, 
+        self.new_action(imageMenu, 
                        'Reset image', 
                        'Ctrl+R', 
                        'Reset image', 
-                       self.commands.totalReset)
-        self.newAction(imageMenu, 
+                       self.commands.total_reset)
+        self.new_action(imageMenu, 
                        'Clear', 
                        'Ctrl+C', 
                        'Remove image', 
@@ -80,14 +80,14 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Pycture')
         self.show()
 
-    def newAction(self, menu, name, shortcut, statustip, connection):
+    def new_action(self, menu, name, shortcut, statustip, connection):
         action = QAction(name, self)
         action.setShortcut(shortcut)
         action.setStatusTip(statustip)
         action.triggered.connect(connection)
         menu.addAction(action)
 
-    def showOpenDialog(self):
+    def show_open_dialog(self):
         if self.open_path and os.path.isdir(self.open_path):
             open_path = self.open_path
         else:
@@ -98,15 +98,15 @@ class MainWindow(QMainWindow):
             self.open_path, _ = os.path.split(fname[0])
             self.pic.get_image(fname[0])
             self.pic.name = None
-            self.commands.resetSliders()
+            self.commands.reset_sliders()
 
-    def saveCurrent(self):
+    def save_current(self):
         if self.pic.name:
             self.pic.to_display.save(self.pic.name)
         else:
-            self.showSaveDialog()
+            self.show_save_dialog()
 
-    def showSaveDialog(self):
+    def show_save_dialog(self):
         if self.save_path and os.path.isdir(self.save_path):
             save_folder = self.save_path
         else:
@@ -126,27 +126,27 @@ class Filters(QWidget):
         self.parent = parent
         self.pic = self.parent.pic
 
-        filters = OrderedDict()
-        filters['BLUR'] = QCheckBox('Blur', self)
-        filters['CONTOUR'] = QCheckBox('Contour', self)
-        filters['DETAIL'] = QCheckBox('Detail', self)
-        filters['EDGE_ENHANCE'] = QCheckBox('Edge enhance', self)
-        filters['EDGE_ENHANCE_MORE'] = QCheckBox('More edge enhance', self)
-        filters['EMBOSS'] = QCheckBox('Emboss', self)
-        filters['FIND_EDGES'] = QCheckBox('Find edges', self)
-        filters['SHARPEN'] = QCheckBox('Sharpen', self)
-        filters['SMOOTH'] = QCheckBox('Smooth', self)
-        filters['SMOOTH_MORE'] = QCheckBox('More smooth', self)
+        self.filters = OrderedDict()
+        self.filters['BLUR'] = QCheckBox('Blur', self)
+        self.filters['CONTOUR'] = QCheckBox('Contour', self)
+        self.filters['DETAIL'] = QCheckBox('Detail', self)
+        self.filters['EDGE_ENHANCE'] = QCheckBox('Edge enhance', self)
+        self.filters['EDGE_ENHANCE_MORE'] = QCheckBox('More edge enhance', self)
+        self.filters['EMBOSS'] = QCheckBox('Emboss', self)
+        self.filters['FIND_EDGES'] = QCheckBox('Find edges', self)
+        self.filters['SHARPEN'] = QCheckBox('Sharpen', self)
+        self.filters['SMOOTH'] = QCheckBox('Smooth', self)
+        self.filters['SMOOTH_MORE'] = QCheckBox('More smooth', self)
 
         vbox = QVBoxLayout()
-        for filter_name, check_filter in filters.items():
+        for filter_name, check_filter in self.filters.items():
             check_filter.setStyleSheet(stylesheets.check_box())
-            # check_filter.stateChanged.connect(partial(self.apply_filter, name))
+            # check_filter.stateChanged.connect(partial(self.applyFilter, name))
             vbox.addWidget(check_filter)
         vbox.setAlignment(Qt.AlignHCenter)
         self.setLayout(vbox)
 
-    # def apply_filter(self, name):
+    # def applyFilter(self, name):
 
 
 
@@ -158,16 +158,16 @@ class Commands(QWidget):
         self.sliders = []
         self.effect_sliders = {}
 
-        self.makeEffectSlider(effect = 'Contrast',
+        self.make_effect_slider(effect = 'Contrast',
                               groove_color_stop = '#7d2fe1')
-        self.makeEffectSlider(effect = 'Color',
+        self.make_effect_slider(effect = 'Color',
                               groove_color_stop = '#2f95e1')
-        self.makeEffectSlider(effect = 'Brightness',
+        self.make_effect_slider(effect = 'Brightness',
                               groove_color_stop = '#2fe180')
-        self.makeEffectSlider(effect = 'Sharpness',
+        self.make_effect_slider(effect = 'Sharpness',
                               groove_color_stop = '#e1832f')
-        # Call _after_ all makeEffectSlider.
-        self.makeRGBSliders()
+        # Call _after_ all make_effect_slider calls.
+        self.make_RGB_sliders()
 
         contrast = QPushButton('Contrast', self)
         contrast.setStyleSheet(stylesheets.button(bg = '#7d2fe1'))
@@ -187,11 +187,11 @@ class Commands(QWidget):
 
         reset_colors = QPushButton('Reset colors', self)
         reset_colors.setStyleSheet(stylesheets.button())
-        reset_colors.clicked.connect(self.resetRGBSliders)
+        reset_colors.clicked.connect(self.reset_RGB_sliders)
 
         reset_all = QPushButton('Reset image', self)
         reset_all.setStyleSheet(stylesheets.button())
-        reset_all.clicked.connect(self.totalReset)
+        reset_all.clicked.connect(self.total_reset)
 
         colors_grid = QGridLayout()
         colors_grid.addWidget(self.rgb_sliders['red'], 1, 0)
@@ -220,29 +220,29 @@ class Commands(QWidget):
 
         self.setLayout(meta_grid)
 
-    def adjustSize(self):
+    def adjust_size(self):
         for slider in self.sliders:
             slider.resize(10, self.parent.height() // 3)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.adjustSize()
+        self.adjust_size()
 
-    def resetSliders(self):
+    def reset_sliders(self):
         for slider in self.sliders:
             slider.reset()
 
-    def resetRGBSliders(self):
+    def reset_RGB_sliders(self):
         for slider in self.rgb_sliders.values():
             slider.reset()
 
-    def makeRGBSliders(self):
+    def make_RGB_sliders(self):
         self.rgb_sliders = {}
         for color, html_color in zip(('red', 'green', 'blue'), 
                                      ('#ff0000', '#5dff00', '#0008ff')):
             self.rgb_sliders[color] = ResetSlider(0, -255, 255, Qt.Vertical)
             self.rgb_sliders[color].valueChanged.connect(
-                partial(self.pic.changeRGB, color, 
+                partial(self.pic.change_RGB, color, 
                         self.rgb_sliders[color], 
                         self.effect_sliders['Color'], 
                         self.effect_sliders['Contrast'], 
@@ -257,7 +257,7 @@ class Commands(QWidget):
             )
             self.sliders.append(self.rgb_sliders[color])
 
-    def makeEffectSlider(self, *, effect, 
+    def make_effect_slider(self, *, effect, 
                          groove_color_stop,
                          handle_color = '#FFFFFF',
                          default = 1000, 
@@ -270,7 +270,7 @@ class Commands(QWidget):
                              scale_factor, 
                              Qt.Vertical)
         slider.valueChanged.connect(
-            partial(self.pic.changeEffect, slider, effect)
+            partial(self.pic.change_effect, slider, effect)
         )
         slider.setStyleSheet(
             stylesheets.slider_stylesheet(handle_color = handle_color, 
@@ -281,11 +281,11 @@ class Commands(QWidget):
 
     def delete(self):
         # Raises a warning but it doesn't seem harmful.
-        self.resetSliders()
+        self.reset_sliders()
         if self.pic.image:
             self.pic.qim = QImage()
-            self.pic.adjustSize()
-            self.pic.setPixmap()
+            self.pic.adjust_size()
+            self.pic.set_pixmap()
             self.pic.to_display = None
             self.pic.original = None
             self.pic.image = None
@@ -293,8 +293,8 @@ class Commands(QWidget):
             self.pic.path = None
             self.pic.cache_colors = None
 
-    def totalReset(self):
-        self.resetSliders()
+    def total_reset(self):
+        self.reset_sliders()
         if self.pic.image:
             self.pic.to_display = self.pic.original
             self.pic.cache_colors = image_tools.get_cache_colors(self.pic)
@@ -331,11 +331,11 @@ class Picture(QLabel):
                         'Brightness' : 'changed_brightness',
                         'Contrast' : 'changed_contrast',
                         'Sharpness' : 'changed_sharpness'}
-        self.setEffects()
+        self.set_effects()
         self.setMinimumSize(150, 150) # Minimum size of the displayed picture.
         self.setStyleSheet(stylesheets.label())
 
-    def setEffects(self):
+    def set_effects(self):
         for v in self.effects.values():
             setattr(self, v, False)
 
@@ -347,36 +347,36 @@ class Picture(QLabel):
         self.original = image_tools.prepare_image(fname, self)
         self.to_display = self.original
         self.cache_colors = image_tools.get_cache_colors(self)
-        self.qtTweaks()
-        self.adjustSize()
-        self.setPixmap()
+        self.qt_tweaks()
+        self.adjust_size()
+        self.set_pixmap()
 
-    def changeRGB(self, color, rgb_slider, color_slider, 
+    def change_RGB(self, color, rgb_slider, color_slider, 
         contrast_slider, brightness_slider, sharpness_slider):
         if self.image:
             color_slider.reset()
             contrast_slider.reset()
             brightness_slider.reset()
             sharpness_slider.reset()
-            self.setEffects()
+            self.set_effects()
             self.to_display, self.cache_colors = image_tools.change_color(
                 self,
                 color, 
                 rgb_slider)
             self.update()
 
-    def changeEffect(self, slider, effect):
+    def change_effect(self, slider, effect):
         if self.image:
             self.to_display = image_tools.change_effect(self, slider, effect)
             self.update()           
 
-    def adjustSize(self):
+    def adjust_size(self):
         w = self.parent.width()
         h = self.parent.height()
         image = QPixmap.fromImage(self.qim)
         self.image = image.scaled(3 * w // 4, h, Qt.KeepAspectRatio)
 
-    def qtTweaks(self):
+    def qt_tweaks(self):
         # This is the only way to avoid a Windows crash.
         r, g, b = self.to_display.split()
         image = image_tools.merge((b, g, r))
@@ -384,16 +384,16 @@ class Picture(QLabel):
         self.qim = QImage(data, image.size[0], image.size[1],
             QImage.Format_ARGB32)
 
-    def setPixmap(self):
+    def set_pixmap(self):
         super().setPixmap(self.image)
 
     def update(self):
-        self.qtTweaks()
-        self.adjustSize()
-        self.setPixmap()
+        self.qt_tweaks()
+        self.adjust_size()
+        self.set_pixmap()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.image:
-            self.adjustSize()
-            self.setPixmap()
+            self.adjust_size()
+            self.set_pixmap()

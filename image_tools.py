@@ -34,7 +34,7 @@ def equal(im1, im2):
 def get_cache_colors(pic):
     return pic.original.split()
 
-def change_color(pic, color, slider):
+def change_RGB_color(pic, color, slider):
     r, g, b = pic.original.split()
     dr, dg, db = pic.to_display.split()
     colors = 'red', 'green', 'blue'
@@ -65,3 +65,6 @@ def change_effect(pic, slider, effect):
     setattr(pic, pic.effects[effect], True)
     enh = getattr(ImageEnhance, effect)(image)
     return enh.enhance(slider.value())
+
+def apply_filter(pic, name):
+    return pic.to_display.filter(getattr(ImageFilter, name))

@@ -47,9 +47,9 @@ class MainWindow(QMainWindow):
         policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.pic.setSizePolicy(policy)
 
-        self.commands = Commands(self, self.pic)
-
         self.filters = Filters(self)
+
+        self.commands = Commands(self, self.pic, self.filters)
 
         imageMenu = menubar.addMenu('&Image')
         self.new_action(imageMenu, 
@@ -99,6 +99,7 @@ class MainWindow(QMainWindow):
             self.pic.get_image(fname[0])
             self.pic.name = None
             self.commands.reset_sliders()
+            self.filters.reset()
 
     def save_current(self):
         if self.pic.name:
@@ -123,8 +124,7 @@ class MainWindow(QMainWindow):
 class Filters(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        self.parent = parent
-        self.pic = self.parent.pic
+        self.pic = parent.pic
 
         self.filters = OrderedDict()
         self.filters['BLUR'] = QCheckBox('Blur', self)
@@ -141,20 +141,34 @@ class Filters(QWidget):
         vbox = QVBoxLayout()
         for filter_name, check_filter in self.filters.items():
             check_filter.setStyleSheet(stylesheets.check_box())
-            # check_filter.stateChanged.connect(partial(self.applyFilter, name))
+            check_filter.stateChanged.connect(partial(self.apply, filter_name))
             vbox.addWidget(check_filter)
         vbox.setAlignment(Qt.AlignHCenter)
         self.setLayout(vbox)
 
-    # def applyFilter(self, name):
+    def apply(self, name, state):
+        if self.pic.image:
+            if state == Qt.Checked:
+                [f.setChecked(False) for n, f in self.filters.items() if n != name]
+                self.pic.before_filter = self.pic.to_display
+                self.pic.to_display = image_tools.apply_filter(self.pic, name)
+                self.pic.update()
+            else:
+                self.pic.to_display = self.pic.before_filter
+                self.pic.update()
+
+    def reset(self):
+        for f in self.filters.values():
+            f.setChecked(False)
 
 
 
 class Commands(QWidget):
-    def __init__(self, parent, pic):
+    def __init__(self, parent, pic, filters):
         super().__init__(parent)
         self.parent = parent
         self.pic = pic
+        self.filters = filters
         self.sliders = []
         self.effect_sliders = {}
 
@@ -233,6 +247,7 @@ class Commands(QWidget):
             slider.reset()
 
     def reset_RGB_sliders(self):
+        self.filters.reset()
         for slider in self.rgb_sliders.values():
             slider.reset()
 
@@ -258,12 +273,12 @@ class Commands(QWidget):
             self.sliders.append(self.rgb_sliders[color])
 
     def make_effect_slider(self, *, effect, 
-                         groove_color_stop,
-                         handle_color = '#FFFFFF',
-                         default = 1000, 
-                         minv = 0, 
-                         maxv = 2000, 
-                         scale_factor = 1000):
+                           groove_color_stop,
+                           handle_color = '#FFFFFF',
+                           default = 1000, 
+                           minv = 0, 
+                           maxv = 2000, 
+                           scale_factor = 1000):
         slider = ResetSlider(default, 
                              minv, 
                              maxv, 
@@ -282,6 +297,7 @@ class Commands(QWidget):
     def delete(self):
         # Raises a warning but it doesn't seem harmful.
         self.reset_sliders()
+        self.filters.reset()
         if self.pic.image:
             self.pic.qim = QImage()
             self.pic.adjust_size()
@@ -295,6 +311,7 @@ class Commands(QWidget):
 
     def total_reset(self):
         self.reset_sliders()
+        self.filters.reset()
         if self.pic.image:
             self.pic.to_display = self.pic.original
             self.pic.cache_colors = image_tools.get_cache_colors(self.pic)
@@ -346,6 +363,7 @@ class Picture(QLabel):
         QImageReader.supportedImageFormats()
         self.original = image_tools.prepare_image(fname, self)
         self.to_display = self.original
+        self.before_filter = self.original
         self.cache_colors = image_tools.get_cache_colors(self)
         self.qt_tweaks()
         self.adjust_size()
@@ -354,12 +372,13 @@ class Picture(QLabel):
     def change_RGB(self, color, rgb_slider, color_slider, 
         contrast_slider, brightness_slider, sharpness_slider):
         if self.image:
+            self.parent.filters.reset()
             color_slider.reset()
             contrast_slider.reset()
             brightness_slider.reset()
             sharpness_slider.reset()
             self.set_effects()
-            self.to_display, self.cache_colors = image_tools.change_color(
+            self.to_display, self.cache_colors = image_tools.change_RGB_color(
                 self,
                 color, 
                 rgb_slider)
@@ -367,6 +386,7 @@ class Picture(QLabel):
 
     def change_effect(self, slider, effect):
         if self.image:
+            self.parent.filters.reset()
             self.to_display = image_tools.change_effect(self, slider, effect)
             self.update()           
 

@@ -14,51 +14,27 @@ class Picture(QLabel):
         self.name = None
         self.path = None
         self.parent = parent
-        self.effects = {'Color' : 'changed_rgb',
-                        'Brightness' : 'changed_brightness',
-                        'Contrast' : 'changed_contrast',
-                        'Sharpness' : 'changed_sharpness'}
-        self.set_effects()
+        
         self.setMinimumSize(150, 150) # Minimum size of the displayed picture.
         self.setStyleSheet(stylesheets.label())
-
-    def set_effects(self):
-        for v in self.effects.values():
-            setattr(self, v, False)
 
     def get_image(self, fname):
         self.prep_image(fname)
 
+    def display_res(self):
+        w, h = self.original.size
+        self.setStatusTip(f'{w}x{h} pixels image')
+
     def prep_image(self, fname):
         QImageReader.supportedImageFormats()
         self.original = image_tools.prepare_image(fname, self)
+        self.display_res()
         self.to_display = self.original
         self.before_filter = self.original
         self.cache_colors = image_tools.get_cache_colors(self)
         self.qt_tweaks()
         self.adjust_size()
-        self.set_pixmap()
-
-    def change_RGB(self, color, rgb_slider, color_slider, 
-        contrast_slider, brightness_slider, sharpness_slider):
-        if self.image:
-            self.parent.filters.reset()
-            color_slider.reset()
-            contrast_slider.reset()
-            brightness_slider.reset()
-            sharpness_slider.reset()
-            self.set_effects()
-            self.to_display, self.cache_colors = image_tools.change_RGB_color(
-                self,
-                color, 
-                rgb_slider)
-            self.update()
-
-    def change_effect(self, slider, effect):
-        if self.image:
-            self.parent.filters.reset()
-            self.to_display = image_tools.change_effect(self, slider, effect)
-            self.update()           
+        self.set_pixmap()          
 
     def adjust_size(self):
         w = self.parent.width()
@@ -81,6 +57,24 @@ class Picture(QLabel):
         self.qt_tweaks()
         self.adjust_size()
         self.set_pixmap()
+
+    def reset(self):
+        if self.image:
+            self.qim = QImage()
+            self.adjust_size()
+            self.set_pixmap()
+            self.to_display = None
+            self.original = None
+            self.image = None
+            self.name = None
+            self.path = None
+            self.cache_colors = None
+
+    def restore(self):
+        if self.image:
+            self.to_display = self.original
+            self.cache_colors = image_tools.get_cache_colors(self)
+            self.update()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

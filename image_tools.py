@@ -52,17 +52,17 @@ def change_RGB_color(pic, color, slider):
     cache_colors = (m[colors[0]], m[colors[1]], m[colors[2]])
     return merge(cache_colors), cache_colors
 
-def change_effect(pic, slider, effect):
+def change_effect(pic, slider, effect, effects):
     check_effects = {}
-    for k, v in pic.effects.items():
+    for k, v in effects.items():
         if k != effect:
-            check_effects[v] = getattr(pic, v)
+            check_effects[k] = v
     if any(check_effects.values()):
         pic.cache_colors = pic.to_display.split()
         for attr in check_effects.keys():
-            setattr(pic, attr, False)
+            effects[attr] = False
     image = merge(pic.cache_colors)
-    setattr(pic, pic.effects[effect], True)
+    effects[effect] = True
     enh = getattr(ImageEnhance, effect)(image)
     return enh.enhance(slider.value())
 

@@ -1,23 +1,15 @@
 import os
-from functools import partial
-from PyQt5.QtWidgets import QMainWindow, \
+from PyQt5.QtWidgets import qApp,        \
+                            QMainWindow, \
                             QWidget,     \
-                            QLabel,      \
                             QGridLayout, \
-                            QVBoxLayout, \
                             QAction,     \
                             QFileDialog, \
-                            QPushButton, \
                             QSizePolicy, \
-                            QSlider,     \
-                            QTabWidget,  \
-                            QCheckBox
-from PyQt5.QtGui import QImage,       \
-                        QImageReader, \
-                        QPixmap
+                            QTabWidget
+from PyQt5.QtGui import QImage
 from PyQt5.QtCore import Qt
 
-import image_tools
 import stylesheets
 from commands import Commands
 from filters import Filters
@@ -44,6 +36,7 @@ class MainWindow(QMainWindow):
         self.new_action(fileMenu, 'Save as..', 'Ctrl+Shift+S', 'Save file as..', 
             self.show_save_dialog)
         self.new_action(fileMenu, 'Save', 'Ctrl+S', 'Save file', self.save_current)
+        self.new_action(fileMenu, 'Exit', None, 'Exit application', qApp.quit)
 
         self.pic = Picture(self)
         policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -84,7 +77,8 @@ class MainWindow(QMainWindow):
 
     def new_action(self, menu, name, shortcut, statustip, connection):
         action = QAction(name, self)
-        action.setShortcut(shortcut)
+        if shortcut:
+            action.setShortcut(shortcut)
         action.setStatusTip(statustip)
         action.triggered.connect(connection)
         menu.addAction(action)

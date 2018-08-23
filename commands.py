@@ -1,8 +1,8 @@
 from functools import partial
 
 from PyQt5.QtWidgets import QWidget,     \
-                          QPushButton, \
-                          QGridLayout
+                            QPushButton, \
+                            QGridLayout
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import Qt
 
@@ -17,6 +17,12 @@ class Commands(QWidget):
         self.pic = pic
         self.filters = filters
         self.sliders = []
+        
+        self.effects = {'Color'      : False,
+                        'Brightness' : False,
+                        'Contrast'   : False,
+                        'Sharpness'  : False}
+        self.set_effects()
         self.effect_sliders = {}
 
         self.make_effect_slider(effect = 'Contrast',
@@ -31,26 +37,32 @@ class Commands(QWidget):
         self.make_RGB_sliders()
 
         contrast = QPushButton('Contrast', self)
+        contrast.setStatusTip('Reset contrast slider')
         contrast.setStyleSheet(stylesheets.button(bg = '#7d2fe1'))
         contrast.clicked.connect(self.effect_sliders['Contrast'].reset)
 
         color_balance = QPushButton('Color balance', self)
+        color_balance.setStatusTip('Reset color-balance slider')
         color_balance.setStyleSheet(stylesheets.button(bg = '#2f95e1'))
         color_balance.clicked.connect(self.effect_sliders['Color'].reset)
 
         brightness = QPushButton('Brightness', self)
+        brightness.setStatusTip('Reset brightness slider')
         brightness.setStyleSheet(stylesheets.button(bg = '#2fe180'))
         brightness.clicked.connect(self.effect_sliders['Brightness'].reset)
 
         sharpness = QPushButton('Sharpness', self)
+        sharpness.setStatusTip('Reset sharpness slider')
         sharpness.setStyleSheet(stylesheets.button(bg = '#e1832f'))
         sharpness.clicked.connect(self.effect_sliders['Sharpness'].reset)
 
         reset_colors = QPushButton('Reset colors', self)
+        reset_colors.setStatusTip('Reset rgb sliders')
         reset_colors.setStyleSheet(stylesheets.button())
         reset_colors.clicked.connect(self.reset_RGB_sliders)
 
         reset_all = QPushButton('Reset image', self)
+        reset_all.setStatusTip('Back to original image')
         reset_all.setStyleSheet(stylesheets.button())
         reset_all.clicked.connect(self.total_reset)
 
@@ -81,6 +93,10 @@ class Commands(QWidget):
 
         self.setLayout(meta_grid)
 
+    def set_effects(self):
+        for k in self.effects.keys():
+            self.effects[k] = False
+
     def adjust_size(self):
         for slider in self.sliders:
             slider.resize(10, self.parent.height() // 3)
@@ -104,19 +120,14 @@ class Commands(QWidget):
                                      ('#ff0000', '#5dff00', '#0008ff')):
             self.rgb_sliders[color] = ResetSlider(0, -255, 255, Qt.Vertical)
             self.rgb_sliders[color].valueChanged.connect(
-                partial(self.pic.change_RGB, color, 
-                        self.rgb_sliders[color], 
-                        self.effect_sliders['Color'], 
-                        self.effect_sliders['Contrast'], 
-                        self.effect_sliders['Brightness'], 
-                        self.effect_sliders['Sharpness']
-                )
+                partial(self.change_RGB, color, self.rgb_sliders[color])
             )
             self.rgb_sliders[color].setStyleSheet(
                 stylesheets.slider_stylesheet(handle_color = '#FFFFFF', 
                                               groove_color_start = '#000000', 
                                               groove_color_stop = html_color)
             )
+            self.rgb_sliders[color].setStatusTip(f'{color.capitalize()} slider')
             self.sliders.append(self.rgb_sliders[color])
 
     def make_effect_slider(self, *, effect, 
@@ -124,7 +135,7 @@ class Commands(QWidget):
                            handle_color = '#FFFFFF',
                            default = 1000, 
                            minv = 0, 
-                           maxv = 2000, 
+                           maxv = 3000, 
                            scale_factor = 1000):
         slider = ResetSlider(default, 
                              minv, 
@@ -132,34 +143,46 @@ class Commands(QWidget):
                              scale_factor, 
                              Qt.Vertical)
         slider.valueChanged.connect(
-            partial(self.pic.change_effect, slider, effect)
+            partial(self.change_effect, slider, effect)
         )
         slider.setStyleSheet(
             stylesheets.slider_stylesheet(handle_color = handle_color, 
                                           groove_color_stop = groove_color_stop)
         )
+        if effect == 'Color':
+            effect_name = effect + '-balance'
+        else:
+            effect_name = effect
+
+        slider.setStatusTip(f"{effect_name} slider")
         self.sliders.append(slider)
         self.effect_sliders[effect] = slider
+
+    def change_RGB(self, color, rgb_slider):
+        if self.pic.image:
+            self.filters.reset()
+            for slider in self.effect_sliders.values():
+                slider.reset()
+            self.set_effects()
+            self.pic.to_display, self.pic.cache_colors = image_tools.change_RGB_color(
+                self.pic,
+                color, 
+                rgb_slider)
+            self.pic.update()
+
+    def change_effect(self, slider, effect):
+        if self.pic.image:
+            self.filters.reset()
+            self.pic.to_display = image_tools.change_effect(self.pic, slider, effect, self.effects)
+            self.pic.update()
 
     def delete(self):
         # Raises a warning but it doesn't seem harmful.
         self.reset_sliders()
         self.filters.reset()
-        if self.pic.image:
-            self.pic.qim = QImage()
-            self.pic.adjust_size()
-            self.pic.set_pixmap()
-            self.pic.to_display = None
-            self.pic.original = None
-            self.pic.image = None
-            self.pic.name = None
-            self.pic.path = None
-            self.pic.cache_colors = None
+        self.pic.reset()
 
     def total_reset(self):
         self.reset_sliders()
         self.filters.reset()
-        if self.pic.image:
-            self.pic.to_display = self.pic.original
-            self.pic.cache_colors = image_tools.get_cache_colors(self.pic)
-            self.pic.update()
+        self.pic.restore()

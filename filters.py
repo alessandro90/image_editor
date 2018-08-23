@@ -60,6 +60,9 @@ class Filters(QWidget):
                         trsp_image_data.append((255, 255, 255, 0))
                     else:
                         trsp_image_data.append(pix)
+                # Because of this line, pic.original must always be
+                # copied, otherwise putdata will modify also pic.original
+                # since to_display would point to pic.original.
                 self.pic.to_display.putdata(trsp_image_data)
             else:
                 self.pic.to_display.putalpha(self.pic.original_alpha)

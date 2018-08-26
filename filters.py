@@ -21,6 +21,8 @@ class Filters(QWidget):
         self.filters['EDGE_ENHANCE'] = QCheckBox('Edge enhance', self)
         self.filters['EDGE_ENHANCE_MORE'] = QCheckBox('More edge enhance', self)
         self.filters['EMBOSS'] = QCheckBox('Emboss', self)
+        # This filter does not work properly with RGBA formats.
+        # A workaround is used in self.apply.
         self.filters['FIND_EDGES'] = QCheckBox('Find edges', self)
         self.filters['SHARPEN'] = QCheckBox('Sharpen', self)
         self.filters['SMOOTH'] = QCheckBox('Smooth', self)
@@ -45,7 +47,9 @@ class Filters(QWidget):
             if state == Qt.Checked:
                 [f.setChecked(False) for n, f in self.filters.items() if n != name]
                 self.pic.before_filter = self.pic.to_display
+                alpha = self.pic.to_display.getchannel("A")
                 self.pic.to_display = image_tools.apply_filter(self.pic, name)
+                self.pic.to_display.putalpha(alpha)
             else:
                 self.pic.to_display = self.pic.before_filter
             self.pic.update()
@@ -62,13 +66,15 @@ class Filters(QWidget):
                         trsp_image_data.append(pix)
                 # Because of this line, pic.original must always be
                 # copied, otherwise putdata will modify also pic.original
-                # since to_display would point to pic.original.
+                # since pic.to_display would point to pic.original.
                 self.pic.to_display.putdata(trsp_image_data)
             else:
                 self.pic.to_display.putalpha(self.pic.original_alpha)
             self.pic.cache_colors = self.pic.to_display.split()
             self.pic.update()
 
-    def reset(self):
+    def reset(self, reset_tranparency = False):
         for f in self.filters.values():
             f.setChecked(False)
+        if reset_tranparency:
+            self.transparency.setChecked(False)

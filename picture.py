@@ -31,7 +31,7 @@ class Picture(QLabel):
         self.to_display = self.original.copy()
         self.before_filter = self.original.copy()
         self.cache_colors = image_tools.get_cache_colors(self)
-        self.original_alpha = self.original.split()[3].copy()
+        self.original_alpha = self.original.getchannel("A").copy()
         self.qt_tweaks()
         self.adjust_size()
         self.set_pixmap()          

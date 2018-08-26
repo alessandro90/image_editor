@@ -183,12 +183,10 @@ class Commands(QWidget):
     def delete(self):
         # Raises a warning but it doesn't seem harmful.
         self.reset_sliders()
-        self.filters.reset()
-        self.filters.transparency.setChecked(False)
+        self.filters.reset(reset_tranparency = True)
         self.pic.reset()
 
     def total_reset(self):
         self.reset_sliders()
-        self.filters.reset()
-        self.filters.transparency.setChecked(False)
+        self.filters.reset(reset_tranparency = True)
         self.pic.restore()

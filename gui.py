@@ -89,19 +89,21 @@ class MainWindow(QMainWindow):
         else:
             open_path = os.path.dirname(os.path.realpath(__file__))
         fname = QFileDialog.getOpenFileName(self, 'Open file', 
-        open_path, '*png *jpg *tif;; *.png;; *jpg;; *tif')
+        open_path, '*.png *.jpg *.tif;; *.png;; *.jpg;; *.tif')
         if fname[0]:
             self.open_path, _ = os.path.split(fname[0])
             self.pic.path = fname[0]
             self.pic.get_image()
             self.pic.name = None
             self.commands.reset_sliders()
-            self.filters.reset()
-            self.filters.transparency.setChecked(False)
+            self.filters.reset(reset_tranparency = True)
 
     def save_current(self):
         if self.pic.name:
-            self.pic.to_display.save(self.pic.name)
+            if self.pic.name[-3:] == 'jpg' or self.pic.name[-3:] == 'tif':
+                self.pic.to_display.convert('RGB').save(self.pic.name)
+            else:
+                self.pic.to_display.save(self.pic.name)
         else:
             self.show_save_dialog()
 
@@ -113,8 +115,11 @@ class MainWindow(QMainWindow):
                 save_folder = os.path.dirname(os.path.realpath(__file__))
     
             fname = QFileDialog.getSaveFileName(self, 'Save file as..', 
-                save_folder, '*.png;; *jpg;; *tif')
+                save_folder, '*.png;; *.jpg;; *.tif')
             if fname[0]:
                 self.save_path, _ = os.path.split(fname[0])
                 self.pic.name = fname[0]
-                self.pic.to_display.save(self.pic.name)
+                if fname[0][-3:] == 'jpg' or fname[0][-3:] == 'tif':
+                    self.pic.to_display.convert('RGB').save(self.pic.name)
+                else:
+                    self.pic.to_display.save(self.pic.name)

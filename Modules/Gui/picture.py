@@ -4,8 +4,8 @@ from PyQt5.QtGui import QImage,       \
                         QPixmap
 from PyQt5.QtCore import Qt
 
-import image_tools
-import stylesheets
+from .. import image_tools
+from . import stylesheets
 
 class Picture(QLabel):
     def __init__(self, parent):

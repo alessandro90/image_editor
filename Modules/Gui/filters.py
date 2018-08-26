@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import QWidget,   \
                             QVBoxLayout
 from PyQt5.QtCore import Qt
 
-import image_tools
-import stylesheets
+from .. import image_tools
+from . import stylesheets
 
 class Filters(QWidget):
     def __init__(self, parent):

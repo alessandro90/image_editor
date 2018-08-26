@@ -10,10 +10,10 @@ from PyQt5.QtWidgets import qApp,        \
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import Qt
 
-import stylesheets
-from commands import Commands
-from filters import Filters
-from picture import Picture
+from . import stylesheets
+from Modules.Gui.commands import Commands
+from Modules.Gui.filters import Filters
+from Modules.Gui.picture import Picture
 
 class MainWindow(QMainWindow):
     def __init__(self):

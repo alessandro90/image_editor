@@ -6,9 +6,9 @@ from PyQt5.QtWidgets import QWidget,     \
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import Qt
 
-import image_tools
-from reset_slider import ResetSlider
-import stylesheets
+from .. import image_tools
+from Modules.Gui.reset_slider import ResetSlider
+from . import stylesheets
 
 class Commands(QWidget):
     def __init__(self, parent, pic, filters):

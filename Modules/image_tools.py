@@ -68,3 +68,19 @@ def change_effect(pic, slider, effect, effects):
 
 def apply_filter(pic, name):
     return pic.to_display.filter(getattr(ImageFilter, name))
+
+def make_transparent(pic):
+    data = pic.to_display.getdata()
+    trsp_image_data = []
+    for pix in data:
+        if pix[:3] == (255, 255, 255):
+            trsp_image_data.append((255, 255, 255, 0))
+        else:
+            trsp_image_data.append(pix)
+    # Because of this line, pic.original must always be
+    # copied, otherwise putdata will modify also pic.original
+    # since pic.to_display would point to pic.original.
+    pic.to_display.putdata(trsp_image_data)
+
+def remove_transparency(pic):
+    pic.to_display.putalpha(pic.original_alpha)

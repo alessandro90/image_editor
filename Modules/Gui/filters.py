@@ -57,19 +57,9 @@ class Filters(QWidget):
     def make_pic_transparent(self, state):
         if self.pic.image:
             if state == Qt.Checked:
-                data = self.pic.to_display.getdata()
-                trsp_image_data = []
-                for pix in data:
-                    if pix[:3] == (255, 255, 255):
-                        trsp_image_data.append((255, 255, 255, 0))
-                    else:
-                        trsp_image_data.append(pix)
-                # Because of this line, pic.original must always be
-                # copied, otherwise putdata will modify also pic.original
-                # since pic.to_display would point to pic.original.
-                self.pic.to_display.putdata(trsp_image_data)
+                image_tools.make_transparent(self.pic)
             else:
-                self.pic.to_display.putalpha(self.pic.original_alpha)
+                image_tools.remove_transparency(self.pic)
             self.pic.cache_colors = self.pic.to_display.split()
             self.pic.update()
 

@@ -22,7 +22,7 @@ class Picture(QLabel):
 
     def display_properties(self):
         w, h = self.original.size
-        self.setStatusTip(f'{w}x{h} pixels image ({self.path[-3:]})')
+        self.setStatusTip(f'{w}x{h} pixels image ({self.extension})')
 
     def prep_image(self):
         QImageReader.supportedImageFormats()
@@ -68,6 +68,7 @@ class Picture(QLabel):
             self.image = None
             self.name = None
             self.path = None
+            self.extension = None
             self.cache_colors = None
 
     def restore(self):

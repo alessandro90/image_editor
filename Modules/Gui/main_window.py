@@ -93,6 +93,7 @@ class MainWindow(QMainWindow):
         if fname[0]:
             self.open_path, _ = os.path.split(fname[0])
             self.pic.path = fname[0]
+            self.pic.extension = fname[0][-3:].lower()
             self.pic.get_image()
             self.pic.name = None
             self.commands.reset_sliders()

@@ -13,7 +13,13 @@ class Picture(QLabel):
         self.image = None
         self.name = None
         self.path = None
-        
+        self.extension = None
+        self.to_display = None
+        self.original = None
+        self.original_alpha = None
+        self.cache_colors = None
+        self.qim = None
+
         self.setMinimumSize(150, 150) # Minimum size of the displayed picture.
         self.setStyleSheet(stylesheets.label())
 
@@ -30,7 +36,7 @@ class Picture(QLabel):
         self.display_properties()
         self.to_display = self.original.copy()
         self.before_filter = self.original.copy()
-        self.cache_colors = image_tools.get_cache_colors(self)
+        self.cache_colors = image_tools.get_modes(self.original)
         self.original_alpha = self.original.getchannel("A").copy()
         self.qt_tweaks()
         self.adjust_size()
@@ -44,7 +50,7 @@ class Picture(QLabel):
 
     def qt_tweaks(self):
         # This is the only way to avoid a Windows crash.
-        r, g, b, alpha = self.to_display.split()
+        r, g, b, alpha =  image_tools.get_modes(self.to_display)
         image = image_tools.merge((b, g, r, alpha))
         data = image_tools.get_data(image)
         self.qim = QImage(data, image.size[0], image.size[1],
@@ -74,7 +80,7 @@ class Picture(QLabel):
     def restore(self):
         if self.image:
             self.to_display = self.original.copy()
-            self.cache_colors = image_tools.get_cache_colors(self)
+            self.cache_colors = image_tools.get_modes(self.original)
             self.update()
 
     def resizeEvent(self, event):

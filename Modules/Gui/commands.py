@@ -164,10 +164,11 @@ class Commands(QWidget):
             for slider in self.effect_sliders.values():
                 slider.reset()
             self.set_effects()
-            self.pic.to_display, self.pic.cache_colors = image_tools.change_RGB_color(
-                self.pic,
-                color, 
-                rgb_slider)
+            self.pic.to_display = image_tools.change_RGB_color(
+                                    self.pic,
+                                    color, 
+                                    rgb_slider)
+            self.pic.cache_colors = image_tools.get_modes(self.pic.to_display)
             self.pic.update()
 
     def change_effect(self, slider, effect):

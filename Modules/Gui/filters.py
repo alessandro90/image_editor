@@ -59,8 +59,8 @@ class Filters(QWidget):
             if state == Qt.Checked:
                 image_tools.make_transparent(self.pic)
             else:
-                image_tools.remove_transparency(self.pic)
-            self.pic.cache_colors = self.pic.to_display.split()
+                image_tools.set_alpha(self.pic.to_display, self.pic.original_alpha)
+            self.pic.cache_colors = image_tools.get_modes(self.pic.to_display)
             self.pic.update()
 
     def reset(self, reset_tranparency = False):

@@ -31,12 +31,12 @@ def change_pixel_color(value):
 def equal(im1, im2):
     return ImageChops.difference(im1, im2).getbbox() is None
 
-def get_cache_colors(pic):
-    return pic.original.split()
+def get_modes(pic):
+    return pic.split()
 
 def change_RGB_color(pic, color, slider):
-    r, g, b, _ = pic.original.split()
-    dr, dg, db, alpha = pic.to_display.split()
+    r, g, b, _ = get_modes(pic.original)
+    dr, dg, db, alpha = get_modes(pic.to_display)
     colors = 'red', 'green', 'blue'
     modes = {'red' : r, 'green' : g, 'blue' : b}
     dmodes = {'red' : dr, 'green' : dg, 'blue' : db}
@@ -50,7 +50,7 @@ def change_RGB_color(pic, color, slider):
                 m[i] = dmodes[i]
     m[color] = m[color].point(change_pixel_color(slider.value()))
     cache_colors = (m[colors[0]], m[colors[1]], m[colors[2]], alpha)
-    return merge(cache_colors), cache_colors
+    return merge(cache_colors)
 
 def change_effect(pic, slider, effect, effects):
     check_effects = {}
@@ -58,7 +58,7 @@ def change_effect(pic, slider, effect, effects):
         if k != effect:
             check_effects[k] = v
     if any(check_effects.values()):
-        pic.cache_colors = pic.to_display.split()
+        pic.cache_colors = get_modes(pic.to_display)
         for attr in check_effects.keys():
             effects[attr] = False
     image = merge(pic.cache_colors)
@@ -82,5 +82,5 @@ def make_transparent(pic):
     # since pic.to_display would point to pic.original.
     pic.to_display.putdata(trsp_image_data)
 
-def remove_transparency(pic):
-    pic.to_display.putalpha(pic.original_alpha)
+def set_alpha(dest, source):
+    dest.putalpha(source)

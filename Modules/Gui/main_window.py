@@ -21,6 +21,9 @@ class MainWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
+        """
+        Initializes the main window of the application.
+        """
         self.save_path = None
         self.open_path = None
         wid = QWidget()
@@ -76,6 +79,9 @@ class MainWindow(QMainWindow):
         self.show()
 
     def new_action(self, menu, name, shortcut, statustip, connection):
+        """
+        Add a QAction to the menu.
+        """
         action = QAction(name, self)
         if shortcut:
             action.setShortcut(shortcut)
@@ -94,12 +100,16 @@ class MainWindow(QMainWindow):
             self.open_path, _ = os.path.split(fname[0])
             self.pic.path = fname[0]
             self.pic.extension = fname[0][-3:].lower()
-            self.pic.get_image()
+            self.pic.prep_image()
             self.pic.name = None
             self.commands.reset_sliders()
             self.filters.reset(reset_tranparency = True)
 
     def save_current(self):
+        """
+        Save displayed image. If the image was already saved with a name once
+        don't ask for a new name.
+        """
         if self.pic.name:
             if self.pic.name[-3:] == 'jpg' or self.pic.name[-3:] == 'tif':
                 self.pic.to_display.convert('RGB').save(self.pic.name)
@@ -109,6 +119,9 @@ class MainWindow(QMainWindow):
             self.show_save_dialog()
 
     def show_save_dialog(self):
+        """
+        Save displayed image. Ask for a name.
+        """
         if self.pic.image:
             if self.save_path and os.path.isdir(self.save_path):
                 save_folder = self.save_path

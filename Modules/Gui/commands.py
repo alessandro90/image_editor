@@ -11,6 +11,10 @@ from Modules.Gui.reset_slider import ResetSlider
 from . import stylesheets
 
 class Commands(QWidget):
+    """
+    Subclass of QWidget. It contains and displays all the sliders
+    in the tab 'Sliders' along with the corresponding 'reset-buttons'.
+    """
     def __init__(self, parent, pic, filters):
         super().__init__(parent)
         self.parent = parent
@@ -22,7 +26,6 @@ class Commands(QWidget):
                         'Brightness' : False,
                         'Contrast'   : False,
                         'Sharpness'  : False}
-        self.set_effects()
         self.effect_sliders = {}
 
         self.make_effect_slider(effect = 'Contrast',
@@ -94,10 +97,16 @@ class Commands(QWidget):
         self.setLayout(meta_grid)
 
     def set_effects(self):
+        """
+        Reset all effects (e.g., color-balance, contrast)
+        """
         for k in self.effects.keys():
             self.effects[k] = False
 
     def adjust_size(self):
+        """
+        Resize the widget whether is needed.
+        """
         for slider in self.sliders:
             slider.resize(10, self.parent.height() // 3)
 
@@ -106,15 +115,25 @@ class Commands(QWidget):
         self.adjust_size()
 
     def reset_sliders(self):
+        """
+        Set all sliders to their default value.
+        """
         for slider in self.sliders:
             slider.reset()
 
     def reset_RGB_sliders(self):
+        """
+        Reset only the red, green and blue sliders to
+        their default value.
+        """
         self.filters.reset()
         for slider in self.rgb_sliders.values():
             slider.reset()
 
     def make_RGB_sliders(self):
+        """
+        Initialize the red, green and blue sliders.
+        """
         self.rgb_sliders = {}
         for color, html_color in zip(('red', 'green', 'blue'), 
                                      ('#ff0000', '#5dff00', '#0008ff')):
@@ -137,11 +156,10 @@ class Commands(QWidget):
                            minv = 0, 
                            maxv = 3000, 
                            scale_factor = 1000):
-        slider = ResetSlider(default, 
-                             minv, 
-                             maxv, 
-                             scale_factor, 
-                             Qt.Vertical)
+        """
+        Initialize the effects sliders (e.g., color-balance, contrast).
+        """
+        slider = ResetSlider(default, minv, maxv, scale_factor, Qt.Vertical)
         slider.valueChanged.connect(
             partial(self.change_effect, slider, effect)
         )
@@ -159,6 +177,10 @@ class Commands(QWidget):
         self.effect_sliders[effect] = slider
 
     def change_RGB(self, color, rgb_slider):
+        """
+        Change a color band by an amount equal to the value
+        of the corresponding slider.
+        """
         if self.pic.image:
             self.filters.reset()
             for slider in self.effect_sliders.values():
@@ -172,22 +194,32 @@ class Commands(QWidget):
             self.pic.update()
 
     def change_effect(self, slider, effect):
+        """
+        Change an effect, by an amount equal to the
+        corresponding slider value.
+        """
         if self.pic.image:
             self.filters.reset()
             self.pic.to_display = image_tools.change_effect(
-                self.pic, 
-                slider, 
-                effect, 
-                self.effects)
+                                      self.pic, 
+                                      slider, 
+                                      effect, 
+                                      self.effects)
             self.pic.update()
 
     def delete(self):
+        """
+        Remove the displayed image.
+        """
         # Raises a warning but it doesn't seem harmful.
         self.reset_sliders()
         self.filters.reset(reset_tranparency = True)
         self.pic.reset()
 
     def total_reset(self):
+        """
+        Restore the originally loaded image.
+        """
         self.reset_sliders()
         self.filters.reset(reset_tranparency = True)
         self.pic.restore()

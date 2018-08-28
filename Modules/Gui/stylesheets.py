@@ -1,3 +1,8 @@
+"""
+This module contains only functions returning
+strings to use as style-sheets.
+"""
+
 def slider_stylesheet(*, handle_color = '#ed3232', groove_color_start = '#000000', 
     groove_color_stop = '#FFFFFF'):
     return f"""

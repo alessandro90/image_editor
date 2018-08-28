@@ -10,6 +10,11 @@ from .. import image_tools
 from . import stylesheets
 
 class Filters(QWidget):
+    """
+    Subclass of QWidget. Contains pre-defined filters available im pillow.
+    Only one filter at a time can be applied, except for the transparency
+    filter which can be always applied.
+    """
     def __init__(self, parent):
         super().__init__(parent)
         self.pic = parent.pic
@@ -43,6 +48,11 @@ class Filters(QWidget):
         self.setLayout(vbox)
 
     def apply(self, name, state):
+        """
+        Apply the chosen filter. Set all other filters (except for the transparency)
+        to unchecked state (False).
+        If the filter is uncheck, restore the image before the filter application.
+        """
         if self.pic.image:
             if state == Qt.Checked:
                 [f.setChecked(False) for n, f in self.filters.items() if n != name]
@@ -55,15 +65,22 @@ class Filters(QWidget):
             self.pic.update()
 
     def make_pic_transparent(self, state):
+        """
+        Make all white pixels transparent.
+        If unchecked, restore white pixels.
+        """
         if self.pic.image:
             if state == Qt.Checked:
                 image_tools.make_transparent(self.pic)
             else:
-                image_tools.set_alpha(self.pic.to_display, self.pic.original_alpha)
+                image_tools.reset_alpha(self.pic)
             self.pic.cache_colors = image_tools.get_modes(self.pic.to_display)
             self.pic.update()
 
     def reset(self, reset_tranparency = False):
+        """
+        Uncheck all filters (optionally reset also transparency).
+        """
         for f in self.filters.values():
             f.setChecked(False)
         if reset_tranparency:

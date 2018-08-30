@@ -93,11 +93,12 @@ class MainWindow(QMainWindow):
         if self.open_path and os.path.isdir(self.open_path):
             open_path = self.open_path
         else:
-            open_path = os.path.dirname(os.path.realpath(__file__))
+            open_path = self.default_directory()
+
         fname = QFileDialog.getOpenFileName(self, 'Open file', 
         open_path, '*.png *.jpg *.tif;; *.png;; *.jpg;; *.tif')
         if fname[0]:
-            self.open_path, _ = os.path.split(fname[0])
+            self.open_path = os.path.dirname(fname[0])
             self.pic.path = fname[0]
             self.pic.extension = fname[0][-3:].lower()
             self.pic.prep_image()
@@ -126,14 +127,32 @@ class MainWindow(QMainWindow):
             if self.save_path and os.path.isdir(self.save_path):
                 save_folder = self.save_path
             else:
-                save_folder = os.path.dirname(os.path.realpath(__file__))
+                save_folder = self.default_directory()
     
             fname = QFileDialog.getSaveFileName(self, 'Save file as..', 
                 save_folder, '*.png;; *.jpg;; *.tif')
             if fname[0]:
-                self.save_path, _ = os.path.split(fname[0])
-                self.pic.name = fname[0]
-                if fname[0][-3:] == 'jpg' or fname[0][-3:] == 'tif':
+                self.save_path = os.path.dirname(fname[0])
+                # fname[0] in Windows contains the extension, but not in Linux.
+                # This line fixes the problem.
+                self.pic.name = fname[0].split('.')[0] + fname[1][1:]
+                ext = self.pic.name[-3:]
+                if ext == 'jpg' or ext == 'tif':
                     self.pic.to_display.convert('RGB').save(self.pic.name)
                 else:
                     self.pic.to_display.save(self.pic.name)
+
+    @staticmethod
+    def default_directory():
+        """
+        Get default directory for open and save files.
+        """
+        return os.path.dirname(
+                    os.path.realpath(
+                        os.path.join(
+                            __file__, os.path.join(
+                                os.pardir, os.pardir
+                            )
+                        )
+                    )
+                )

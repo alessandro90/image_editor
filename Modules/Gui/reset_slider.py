@@ -7,8 +7,9 @@ class ResetSlider(QSlider):
     If a scale-factor is given, values from value() functions
     are scaled accordingly.
     """
-    def __init__(self, default_value, minv, maxv, scale_factor = None, *args):
-        super().__init__(*args)
+    def __init__(self, default_value, minv, maxv, 
+        scale_factor = None, qalignment = Qt.Vertical):
+        super().__init__(qalignment)
         self.default_value = default_value
         self.scale_factor = scale_factor
         self.setFocusPolicy(Qt.NoFocus)

@@ -137,7 +137,7 @@ class Commands(QWidget):
         self.rgb_sliders = {}
         for color, html_color in zip(('red', 'green', 'blue'), 
                                      ('#ff0000', '#5dff00', '#0008ff')):
-            self.rgb_sliders[color] = ResetSlider(0, -255, 255, Qt.Vertical)
+            self.rgb_sliders[color] = ResetSlider(0, -255, 255)
             self.rgb_sliders[color].valueChanged.connect(
                 partial(self.change_RGB, color, self.rgb_sliders[color])
             )
@@ -159,7 +159,7 @@ class Commands(QWidget):
         """
         Initialize the effects sliders (e.g., color-balance, contrast).
         """
-        slider = ResetSlider(default, minv, maxv, scale_factor, Qt.Vertical)
+        slider = ResetSlider(default, minv, maxv, scale_factor = scale_factor)
         slider.valueChanged.connect(
             partial(self.change_effect, slider, effect)
         )

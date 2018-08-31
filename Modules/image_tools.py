@@ -135,8 +135,9 @@ def reset_alpha(pic):
     Restore the original white pixels before the call 
     to 'make_transparent'.
     """
-    data = list(pic.to_display.getdata())
-    for i in pic.white_pixels:
-        data[i] = (255, 255, 255, 0)
-    pic.to_display.putdata(data)
-    pic.to_display.putalpha(pic.original_alpha)
+    if pic.white_pixels:
+        data = list(pic.to_display.getdata())
+        for i in pic.white_pixels:
+            data[i] = (255, 255, 255, 0)
+        pic.to_display.putdata(data)
+        pic.to_display.putalpha(pic.original_alpha)

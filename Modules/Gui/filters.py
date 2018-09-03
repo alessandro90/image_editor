@@ -61,7 +61,12 @@ class Filters(QWidget):
                 self.pic.to_display = image_tools.apply_filter(self.pic, name)
                 self.pic.to_display.putalpha(alpha)
             else:
-                self.pic.to_display = self.pic.before_filter
+                if not self.pic.white_pixels:
+                    self.pic.to_display = self.pic.before_filter
+                else:
+                    alpha = self.pic.to_display.getchannel("A")
+                    self.pic.to_display = self.pic.before_filter
+                    self.pic.to_display.putalpha(alpha)
             self.pic.update()
 
     def make_pic_transparent(self, state):

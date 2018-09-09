@@ -115,20 +115,11 @@ def make_transparent(pic):
             trsp_image_data.append((255, 255, 255, 0))
         else:
             trsp_image_data.append(pix)
-    pic.white_pixels = white_pixels(data)
+    pic.white_pixels = (index for index, pix in enumerate(data) if pix[:3] == (255, 255, 255))
     # Because of this line, pic.original must always be
     # copied, otherwise putdata will modify also pic.original
     # since pic.to_display would point to pic.original.
     pic.to_display.putdata(trsp_image_data)
-
-def white_pixels(data):
-    """
-    Generator which returns all the white pixels positions
-    before the 'make_transparent' call.
-    """
-    for index, pix in enumerate(data):
-        if pix[:3] == (255, 255, 255):
-            yield index
 
 def reset_alpha(pic):
     """
